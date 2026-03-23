@@ -19,6 +19,11 @@
     <string name="mulligan">Mulligan</string>
     <string name="recall">Recall</string>
     <string name="turbo">Turbo</string>
+    <string name="select_game_mode">Select Game Mode</string>
+    <string name="mode_classic_label">🎯 Classic</string>
+    <string name="mode_boss_rush_label">💀 Boss Rush — Start at Level 10, jump by 10</string>
+    <string name="mode_quick_start_50_label">⚡ Quick Start — Level 50</string>
+    <string name="mode_quick_start_100_label">🔥 Quick Start — Level 100</string>
     <string name="check_for_updates">Check for Updates</string>
     <string name="checking_for_updates">Checking…</string>
     <string name="update_available_title">Update Available</string>

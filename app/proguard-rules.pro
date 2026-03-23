@@ -6,3 +6,4 @@
 -keep class com.rapidfire.game.update.UpdateInfo { *; }
 -keep class com.rapidfire.game.update.UpdateResult { *; }
 -keep class com.rapidfire.game.update.UpdateResult$* { *; }
+-keep class com.rapidfire.game.model.GameMode { *; }

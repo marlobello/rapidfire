@@ -5,6 +5,7 @@ import com.rapidfire.game.model.Ball
 import com.rapidfire.game.model.Brick
 import com.rapidfire.game.model.Cannon
 import com.rapidfire.game.model.GameBoard
+import com.rapidfire.game.model.GameMode
 import com.rapidfire.game.util.Constants
 import kotlin.math.abs
 import kotlin.math.cos
@@ -16,6 +17,9 @@ class GameState {
     val cannon = Cannon(x = 0f) // will be positioned after view size is known
     val balls = mutableListOf<Ball>()
     val rowGenerator = RowGenerator()
+
+    var gameMode = GameMode.CLASSIC
+    private var isFirstRound = true
 
     // Screen-space bounds set by GameView after dimensions are calculated
     var cannonScreenY = 0f
@@ -81,11 +85,12 @@ class GameState {
     fun initNewGame() {
         board.clear()
         balls.clear()
-        round = 0
+        round = gameMode.baseRound
         score = 0
         mulligans = 0
         isTurbo = false
         isGameOver = false
+        isFirstRound = true
         boardClearTimer = 0f
         mulliganJustEarned = false
         bricksDestroyed = 0
@@ -105,7 +110,7 @@ class GameState {
     }
 
     fun startNewRound() {
-        round++
+        round += gameMode.roundIncrement
 
         cannon.ammo = round
         cannon.isAiming = false
@@ -113,14 +118,15 @@ class GameState {
         firstDespawnX = null
         isTurbo = false
 
-        // Shift existing bricks down
-        if (round > 1) {
+        // Shift existing bricks down (skip on the very first round of a game)
+        if (!isFirstRound) {
             val gameOver = board.shiftDown()
             if (gameOver) {
                 isGameOver = true
                 return
             }
         }
+        isFirstRound = false
 
         // Animate new row sliding in (and existing bricks shifting down)
         brickShiftOffset = 1f

@@ -12,6 +12,7 @@ import com.rapidfire.game.BuildConfig
 import com.rapidfire.game.data.ScoreDatabase
 import com.rapidfire.game.data.ScoreEntity
 import com.rapidfire.game.databinding.FragmentGameOverBinding
+import com.rapidfire.game.model.GameMode
 import kotlinx.coroutines.launch
 
 class GameOverFragment : Fragment() {
@@ -33,6 +34,8 @@ class GameOverFragment : Fragment() {
         val boardClears = arguments?.getInt("boardClears", 0) ?: 0
         val mulligansUsed = arguments?.getInt("mulligansUsed", 0) ?: 0
         val shotsFired = arguments?.getInt("shotsFired", 0) ?: 0
+        val gameModeName = arguments?.getString("gameMode") ?: "CLASSIC"
+        val gameMode = GameMode.fromName(gameModeName)
 
         // Display stats
         binding.tvScore.text = "%,d".format(score)
@@ -76,7 +79,10 @@ class GameOverFragment : Fragment() {
 
         binding.btnPlayAgain.setOnClickListener {
             try {
-                findNavController().navigate(R.id.action_gameOver_to_game)
+                val bundle = android.os.Bundle().apply {
+                    putString("gameMode", gameModeName)
+                }
+                findNavController().navigate(R.id.action_gameOver_to_game, bundle)
             } catch (_: IllegalArgumentException) { }
         }
 

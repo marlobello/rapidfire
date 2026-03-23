@@ -9,6 +9,7 @@ import androidx.navigation.fragment.findNavController
 import com.rapidfire.game.R
 import com.rapidfire.game.audio.SoundManager
 import com.rapidfire.game.databinding.FragmentGameBinding
+import com.rapidfire.game.model.GameMode
 
 class GameFragment : Fragment() {
 
@@ -27,10 +28,16 @@ class GameFragment : Fragment() {
         soundManager = SoundManager(requireContext())
         binding.gameView.soundManager = soundManager
 
+        // Set game mode before the game starts
+        val modeName = arguments?.getString("gameMode") ?: "CLASSIC"
+        val gameMode = GameMode.fromName(modeName)
+        binding.gameView.gameState.gameMode = gameMode
+
         // Capture the view reference so the game thread closure doesn't touch binding
         val gameView = binding.gameView
 
         gameView.onGameOver = { stats ->
+            stats.putString("gameMode", modeName)
             gameView.post {
                 if (_binding != null && isAdded) {
                     try {
