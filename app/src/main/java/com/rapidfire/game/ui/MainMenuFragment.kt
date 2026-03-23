@@ -62,9 +62,9 @@ class MainMenuFragment : Fragment() {
                     updater.downloadAndInstall(
                         info,
                         onDownloadStarted = {},
-                        onInstallLaunched = {
+                        onDownloadComplete = {
                             if (_binding != null) {
-                                binding.btnUpdate.text = getString(R.string.installing)
+                                binding.btnUpdate.text = getString(R.string.download_complete)
                             }
                         },
                         onError = { msg ->

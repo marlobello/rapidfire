@@ -7,12 +7,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
-import androidx.core.content.FileProvider
+import android.os.Environment
 import com.rapidfire.game.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -42,7 +41,6 @@ class AppUpdater(private val context: Context) {
         private const val PREFS_NAME = "update_prefs"
         private const val KEY_LAST_CHECK = "last_check_time"
         private const val CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000L // 6 hours
-        private const val UPDATES_DIR = "updates"
     }
 
     suspend fun checkForUpdate(force: Boolean = false): UpdateResult = withContext(Dispatchers.IO) {
@@ -101,33 +99,28 @@ class AppUpdater(private val context: Context) {
     }
 
     /**
-     * Download APK to private app storage and auto-launch the installer
-     * when complete. Uses FileProvider for secure content URI — this
-     * pattern is recognized by Play Protect as legitimate.
+     * Download APK via DownloadManager. The completion notification lets
+     * the user tap to install — no REQUEST_INSTALL_PACKAGES needed.
+     * Notifies via callbacks so the UI can update accordingly.
      */
     fun downloadAndInstall(
         updateInfo: UpdateInfo,
         onDownloadStarted: () -> Unit = {},
-        onInstallLaunched: () -> Unit = {},
+        onDownloadComplete: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        val updatesDir = File(context.getExternalFilesDir(null), UPDATES_DIR)
-        updatesDir.mkdirs()
-        // Clean up old APKs
-        updatesDir.listFiles()?.filter { it.extension == "apk" }?.forEach { it.delete() }
-
-        val apkFile = File(updatesDir, "rapidfire-v${updateInfo.versionName}.apk")
-
         val request = DownloadManager.Request(Uri.parse(updateInfo.downloadUrl))
             .setTitle("Rapid Fire v${updateInfo.versionName}")
-            .setDescription("Downloading update…")
+            .setDescription("Tap to install when complete")
             .setMimeType("application/vnd.android.package-archive")
-            .setDestinationUri(Uri.fromFile(apkFile))
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+            .setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                "rapidfire-v${updateInfo.versionName}.apk"
+            )
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
 
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
-        // Unregister any previous receiver
         unregisterReceiver()
 
         downloadReceiver = object : BroadcastReceiver() {
@@ -136,7 +129,6 @@ class AppUpdater(private val context: Context) {
                 if (id != activeDownloadId) return
                 unregisterReceiver()
 
-                // Verify download succeeded
                 val query = DownloadManager.Query().setFilterById(id)
                 val cursor = dm.query(query)
                 if (cursor.moveToFirst()) {
@@ -144,8 +136,7 @@ class AppUpdater(private val context: Context) {
                         cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)
                     )
                     if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                        launchInstaller(apkFile)
-                        onInstallLaunched()
+                        onDownloadComplete()
                     } else {
                         onError("Download failed")
                     }
@@ -169,19 +160,6 @@ class AppUpdater(private val context: Context) {
 
         activeDownloadId = dm.enqueue(request)
         onDownloadStarted()
-    }
-
-    private fun launchInstaller(apkFile: File) {
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            apkFile
-        )
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-        }
-        context.startActivity(intent)
     }
 
     private fun unregisterReceiver() {

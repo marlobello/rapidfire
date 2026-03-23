@@ -29,9 +29,9 @@
     <string name="update_check_failed">Couldn\'t check for updates. Please try again.</string>
     <string name="download_started">Downloading update…</string>
     <string name="downloading">Downloading…</string>
-    <string name="installing">Installing…</string>
+    <string name="download_complete">Downloaded ✓</string>
     <string name="update_retry">Retry</string>
     <string name="update_banner_text">v%s available!</string>
-    <string name="install_launched">Opening installer…</string>
+    <string name="tap_notification_to_install">Tap the download notification to install.</string>
     <string name="download_failed">Download failed. Tap Retry.</string>
 </resources>

@@ -106,10 +106,10 @@ class SettingsFragment : Fragment() {
         u.downloadAndInstall(
             info,
             onDownloadStarted = {},
-            onInstallLaunched = {
+            onDownloadComplete = {
                 if (_binding != null) {
-                    binding.btnCheckUpdates.text = getString(R.string.installing)
-                    setStatus(getString(R.string.install_launched))
+                    binding.btnCheckUpdates.text = getString(R.string.download_complete)
+                    setStatus(getString(R.string.tap_notification_to_install))
                 }
             },
             onError = { msg ->
