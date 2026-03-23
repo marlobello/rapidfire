@@ -72,5 +72,15 @@
             app:icon="@android:drawable/stat_sys_download"
             app:iconTint="@color/menu_text" />
 
+        <TextView
+            android:id="@+id/tvUpdateStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#AAFFFFFF"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
     </LinearLayout>
 </LinearLayout>

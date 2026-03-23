@@ -7,11 +7,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rapidfire.game.BuildConfig
 import com.rapidfire.game.R
 import com.rapidfire.game.databinding.FragmentMainMenuBinding
 import com.rapidfire.game.update.AppUpdater
+import com.rapidfire.game.update.UpdateResult
 import kotlinx.coroutines.launch
 
 class MainMenuFragment : Fragment() {
@@ -39,32 +39,43 @@ class MainMenuFragment : Fragment() {
             findNavController().navigate(R.id.action_menu_to_settings)
         }
 
-        // Auto-check for updates (respects 6-hour throttle)
         checkForUpdates()
     }
 
     private fun checkForUpdates() {
         lifecycleScope.launch {
-            val updater = AppUpdater(requireContext())
-            val update = updater.checkForUpdate(force = false)
+            val updater = AppUpdater(requireContext().applicationContext)
+            val result = updater.checkForUpdate(force = false)
 
-            if (_binding == null || !isAdded || update == null) return@launch
+            if (_binding == null || !isAdded) return@launch
 
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.update_available_title)
-                .setMessage(
-                    getString(
-                        R.string.update_available_message,
-                        update.versionName,
-                        BuildConfig.VERSION_NAME,
-                        update.releaseNotes
-                    )
+            if (result is UpdateResult.Available) {
+                val info = result.info
+                binding.updateBanner.visibility = View.VISIBLE
+                binding.tvUpdateVersion.text = getString(
+                    R.string.update_banner_text,
+                    info.versionName
                 )
-                .setPositiveButton(R.string.update_now) { _, _ ->
-                    updater.downloadUpdate(update)
+                binding.btnUpdate.setOnClickListener {
+                    binding.btnUpdate.isEnabled = false
+                    binding.btnUpdate.text = getString(R.string.downloading)
+                    updater.downloadAndInstall(
+                        info,
+                        onDownloadStarted = {},
+                        onInstallLaunched = {
+                            if (_binding != null) {
+                                binding.btnUpdate.text = getString(R.string.installing)
+                            }
+                        },
+                        onError = { msg ->
+                            if (_binding != null) {
+                                binding.btnUpdate.isEnabled = true
+                                binding.btnUpdate.text = getString(R.string.update_retry)
+                            }
+                        }
+                    )
                 }
-                .setNegativeButton(R.string.later, null)
-                .show()
+            }
         }
     }
 
