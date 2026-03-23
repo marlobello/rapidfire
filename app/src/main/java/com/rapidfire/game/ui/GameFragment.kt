@@ -89,6 +89,9 @@ class GameFragment : Fragment() {
         // from invoking them after the view is gone
         _binding?.gameView?.onGameOver = null
         _binding?.gameView?.onPauseRequested = null
+        // Clear sound manager on GameView BEFORE releasing it — prevents
+        // the game thread from calling play*() on a released SoundManager
+        _binding?.gameView?.soundManager = null
         soundManager?.release()
         soundManager = null
         _binding = null

@@ -21,15 +21,15 @@ class GameView @JvmOverloads constructor(
     private val collisionDetector = CollisionDetector()
     private lateinit var inputHandler: InputHandler
     private var gameLoop: GameLoop? = null
-    var soundManager: SoundManager? = null
+    @Volatile var soundManager: SoundManager? = null
 
     /** Callback receives a Bundle of game stats on game over. */
-    var onGameOver: ((android.os.Bundle) -> Unit)? = null
+    @Volatile var onGameOver: ((android.os.Bundle) -> Unit)? = null
     /** Called (on UI thread) when the player taps the pause icon. */
-    var onPauseRequested: (() -> Unit)? = null
+    @Volatile var onPauseRequested: (() -> Unit)? = null
 
-    private var isPaused = false
-    private var gameOverHandled = false
+    @Volatile private var isPaused = false
+    @Volatile private var gameOverHandled = false
 
     // Thread-safe action queue — UI thread enqueues, game thread dequeues
     private val pendingActions = mutableListOf<() -> Unit>()
@@ -77,10 +77,11 @@ class GameView @JvmOverloads constructor(
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        // Signal the thread to stop but don't block the main thread with join().
-        // The thread will exit its loop on the next iteration.
-        gameThread?.isRunning = false
+        // Signal the thread to stop and interrupt so it wakes from sleep().
+        val thread = gameThread
         gameThread = null
+        thread?.isRunning = false
+        thread?.interrupt()
     }
 
     fun startGame() {
@@ -194,6 +195,9 @@ class GameView @JvmOverloads constructor(
                     putInt("shotsFired", gameState.shotsFired)
                 }
                 onGameOver?.invoke(stats)
+                // Stop the render loop — no need to keep locking the canvas
+                // during the fragment transition to GameOverFragment
+                gameThread?.isRunning = false
             }
         }
 
@@ -204,7 +208,7 @@ class GameView @JvmOverloads constructor(
         private val surfaceHolder: SurfaceHolder,
         private val gameView: GameView
     ) : Thread("GameThread") {
-        var isRunning = false
+        @Volatile var isRunning = false
 
         override fun run() {
             isRunning = true
