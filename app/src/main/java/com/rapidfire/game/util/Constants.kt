@@ -13,8 +13,8 @@ object Constants {
     const val FIRE_DELAY_MS = 80L // delay between successive ball firings
 
     // Cannon — doubled from previous
-    const val MIN_AIM_ANGLE_DEG = 10f // minimum angle from horizon (both sides)
-    const val MAX_AIM_ANGLE_DEG = 170f // 180 - MIN = max from left horizon
+    const val MIN_AIM_ANGLE_DEG = 15f // minimum angle from horizon (both sides)
+    const val MAX_AIM_ANGLE_DEG = 165f // 180 - MIN = max from left horizon
     const val CANNON_WIDTH = 160f
     const val CANNON_HEIGHT = 200f
     const val BARREL_LENGTH = 120f
