@@ -73,7 +73,7 @@ class SettingsFragment : Fragment() {
             .setTitle(R.string.update_available_title)
             .setMessage(getString(R.string.update_available_message, update.versionName, BuildConfig.VERSION_NAME, update.releaseNotes))
             .setPositiveButton(R.string.update_now) { _, _ ->
-                updater.downloadAndInstall(update)
+                updater.openReleasePage(update)
             }
             .setNegativeButton(R.string.later, null)
             .show()

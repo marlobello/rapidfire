@@ -61,7 +61,7 @@ class MainMenuFragment : Fragment() {
                     )
                 )
                 .setPositiveButton(R.string.update_now) { _, _ ->
-                    updater.downloadAndInstall(update)
+                    updater.openReleasePage(update)
                 }
                 .setNegativeButton(R.string.later, null)
                 .show()
