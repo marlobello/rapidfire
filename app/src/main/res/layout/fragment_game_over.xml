@@ -10,16 +10,16 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="32dp">
+        android:padding="@dimen/screen_padding">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/game_over"
-            android:textColor="#FFF44336"
+            android:textColor="@color/game_over_red"
             android:textSize="42sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="@dimen/element_spacing" />
 
         <!-- New high score banner (hidden by default) -->
         <TextView
@@ -27,11 +27,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="🏆 NEW HIGH SCORE! 🏆"
-            android:textColor="#FFFFC828"
+            android:textColor="@color/accent_gold"
             android:textSize="24sp"
             android:textStyle="bold"
             android:visibility="gone"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="@dimen/item_padding" />
 
         <!-- Score (prominent) -->
         <TextView
@@ -41,46 +41,46 @@
             android:textColor="@color/menu_text"
             android:textSize="48sp"
             android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="@dimen/text_spacing" />
 
         <TextView
             android:id="@+id/tvRound"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#AAFFFFFF"
+            android:textColor="@color/text_secondary"
             android:textSize="20sp"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="@dimen/section_spacing" />
 
         <!-- Stats grid -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#18FFFFFF"
-            android:padding="16dp"
-            android:layout_marginBottom="32dp">
+            android:background="@color/surface_overlay"
+            android:padding="@dimen/stats_padding"
+            android:layout_marginBottom="@dimen/screen_padding">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Game Stats"
-                android:textColor="#AAFFFFFF"
+                android:textColor="@color/text_secondary"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.1"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginBottom="@dimen/item_padding" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="@dimen/element_spacing">
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Bricks Destroyed"
-                    android:textColor="#CCFFFFFF"
+                    android:textColor="@color/text_label"
                     android:textSize="16sp" />
                 <TextView
                     android:id="@+id/tvBricksDestroyed"
@@ -95,13 +95,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="@dimen/element_spacing">
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Board Clears"
-                    android:textColor="#CCFFFFFF"
+                    android:textColor="@color/text_label"
                     android:textSize="16sp" />
                 <TextView
                     android:id="@+id/tvBoardClears"
@@ -116,13 +116,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="@dimen/element_spacing">
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Shots Fired"
-                    android:textColor="#CCFFFFFF"
+                    android:textColor="@color/text_label"
                     android:textSize="16sp" />
                 <TextView
                     android:id="@+id/tvShotsFired"
@@ -142,7 +142,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Mulligans Used"
-                    android:textColor="#CCFFFFFF"
+                    android:textColor="@color/text_label"
                     android:textSize="16sp" />
                 <TextView
                     android:id="@+id/tvMulligansUsed"
@@ -157,16 +157,16 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPlayAgain"
-            android:layout_width="240dp"
-            android:layout_height="56dp"
+            android:layout_width="@dimen/button_width"
+            android:layout_height="@dimen/button_height"
             android:text="@string/play_again"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="@dimen/item_spacing" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnMainMenu"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="240dp"
-            android:layout_height="56dp"
+            android:layout_width="@dimen/button_width"
+            android:layout_height="@dimen/button_height"
             android:text="@string/main_menu" />
 
     </LinearLayout>

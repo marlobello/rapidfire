@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rapidfire.game.R
 import com.rapidfire.game.audio.SoundManager
 import com.rapidfire.game.databinding.FragmentGameBinding
@@ -67,9 +68,16 @@ class GameFragment : Fragment() {
         }
 
         binding.btnQuit.setOnClickListener {
-            try {
-                findNavController().navigate(R.id.action_game_to_menu)
-            } catch (_: Exception) { }
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.quit_confirm_title)
+                .setMessage(R.string.quit_confirm_message)
+                .setPositiveButton(R.string.quit_confirm_yes) { _, _ ->
+                    try {
+                        findNavController().navigate(R.id.action_game_to_menu)
+                    } catch (_: Exception) { }
+                }
+                .setNegativeButton(R.string.quit_confirm_no, null)
+                .show()
         }
     }
 

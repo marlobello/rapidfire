@@ -4,11 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.rapidfire.game.R
-import com.rapidfire.game.BuildConfig
 import com.rapidfire.game.data.ScoreDatabase
 import com.rapidfire.game.data.ScoreEntity
 import com.rapidfire.game.databinding.FragmentGameOverBinding
@@ -76,8 +76,8 @@ class GameOverFragment : Fragment() {
                         binding.tvNewHighScore.visibility = View.VISIBLE
                     }
                 } catch (e: Exception) {
-                    if (BuildConfig.DEBUG) {
-                        android.util.Log.e("GameOver", "Failed to save score", e)
+                    if (_binding != null) {
+                        Toast.makeText(requireContext(), R.string.score_save_error, Toast.LENGTH_SHORT).show()
                     }
                 }
             }

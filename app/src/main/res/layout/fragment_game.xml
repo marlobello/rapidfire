@@ -14,7 +14,7 @@
         android:id="@+id/pauseOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#CC000000"
+        android:background="@color/overlay_dark"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone">
@@ -24,34 +24,31 @@
             android:layout_height="wrap_content"
             android:text="PAUSED"
             android:textColor="@color/menu_text"
-            android:textSize="44sp"
+            android:textSize="42sp"
             android:textStyle="bold"
             android:layout_marginBottom="40dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnResume"
-            android:layout_width="260dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/button_width"
+            android:layout_height="@dimen/button_height"
             android:text="@string/resume"
-            android:textSize="18sp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="@dimen/item_spacing" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRestart"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="260dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/button_width"
+            android:layout_height="@dimen/button_height"
             android:text="@string/restart"
-            android:textSize="18sp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="@dimen/item_spacing" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnQuit"
             style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="260dp"
-            android:layout_height="60dp"
-            android:text="@string/quit"
-            android:textSize="18sp" />
+            android:layout_width="@dimen/button_width"
+            android:layout_height="@dimen/button_height"
+            android:text="@string/quit" />
 
     </LinearLayout>
 

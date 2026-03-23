@@ -11,13 +11,25 @@
         <action
             android:id="@+id/action_menu_to_game"
             app:destination="@id/gameFragment"
-            app:popUpTo="@id/mainMenuFragment" />
+            app:popUpTo="@id/mainMenuFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out" />
         <action
             android:id="@+id/action_menu_to_settings"
-            app:destination="@id/settingsFragment" />
+            app:destination="@id/settingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_menu_to_leaderboard"
-            app:destination="@id/leaderboardFragment" />
+            app:destination="@id/leaderboardFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -31,12 +43,16 @@
         <action
             android:id="@+id/action_game_to_gameOver"
             app:destination="@id/gameOverFragment"
-            app:popUpTo="@id/mainMenuFragment" />
+            app:popUpTo="@id/mainMenuFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out" />
         <action
             android:id="@+id/action_game_to_menu"
             app:destination="@id/mainMenuFragment"
             app:popUpTo="@id/mainMenuFragment"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out" />
     </fragment>
 
     <fragment
@@ -53,12 +69,16 @@
         <action
             android:id="@+id/action_gameOver_to_game"
             app:destination="@id/gameFragment"
-            app:popUpTo="@id/mainMenuFragment" />
+            app:popUpTo="@id/mainMenuFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out" />
         <action
             android:id="@+id/action_gameOver_to_menu"
             app:destination="@id/mainMenuFragment"
             app:popUpTo="@id/mainMenuFragment"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out" />
     </fragment>
 
     <fragment

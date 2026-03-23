@@ -20,4 +20,21 @@
     <color name="menu_background">#FF121212</color>
     <color name="menu_button">#FF1E88E5</color>
     <color name="menu_text">#FFFFFFFF</color>
+
+    <!-- Accent colors -->
+    <color name="accent_gold">#FFFFC828</color>
+    <color name="accent_orange_red">#FFFF5028</color>
+    <color name="game_over_red">#FFF44336</color>
+    <color name="update_banner">#FF2E7D32</color>
+
+    <!-- Text hierarchy -->
+    <color name="text_secondary">#AAFFFFFF</color>
+    <color name="text_label">#CCFFFFFF</color>
+    <color name="text_tertiary">#88FFFFFF</color>
+
+    <!-- Surface/overlay -->
+    <color name="overlay_dark">#CC000000</color>
+    <color name="surface_overlay">#18FFFFFF</color>
+    <color name="divider">#33FFFFFF</color>
+    <color name="stroke_subtle">#55FFFFFF</color>
 </resources>

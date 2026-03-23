@@ -5,14 +5,14 @@
     android:gravity="center"
     android:orientation="vertical"
     android:background="@color/menu_background"
-    android:padding="32dp">
+    android:padding="@dimen/screen_padding">
 
     <ImageView
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="@dimen/logo_size"
+        android:layout_height="@dimen/logo_size"
         android:src="@drawable/rapidfire_logo"
         android:contentDescription="@string/app_name"
-        android:layout_marginBottom="24dp" />
+        android:layout_marginBottom="@dimen/section_spacing" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Rapid"
-            android:textColor="#FF5028"
+            android:textColor="@color/accent_orange_red"
             android:textSize="52sp"
             android:textStyle="bold"
             android:letterSpacing="0.05" />
@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=" Fire"
-            android:textColor="#FFC828"
+            android:textColor="@color/accent_gold"
             android:textSize="52sp"
             android:textStyle="bold"
             android:letterSpacing="0.05" />
@@ -43,11 +43,11 @@
     <!-- Update banner (hidden by default) -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/updateBanner"
-        android:layout_width="260dp"
+        android:layout_width="@dimen/banner_width"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="@dimen/section_spacing"
         android:visibility="gone"
-        app:cardBackgroundColor="#2E7D32"
+        app:cardBackgroundColor="@color/update_banner"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
         xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -56,14 +56,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp"
+            android:padding="@dimen/card_padding"
             android:gravity="center_horizontal">
 
             <TextView
                 android:id="@+id/tvUpdateVersion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
+                android:textColor="@color/menu_text"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -72,7 +72,7 @@
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/element_spacing"
                 android:text="@string/update_now"
                 android:textSize="12sp" />
 
@@ -82,24 +82,24 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnStartGame"
-        android:layout_width="240dp"
-        android:layout_height="56dp"
+        android:layout_width="@dimen/button_width"
+        android:layout_height="@dimen/button_height"
         android:text="@string/start_game"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="@dimen/item_spacing" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnLeaderboard"
         style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="240dp"
-        android:layout_height="56dp"
+        android:layout_width="@dimen/button_width"
+        android:layout_height="@dimen/button_height"
         android:text="@string/leaderboard"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="@dimen/item_spacing" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSettings"
         style="@style/Widget.Material3.Button.TextButton"
-        android:layout_width="240dp"
-        android:layout_height="56dp"
+        android:layout_width="@dimen/button_width"
+        android:layout_height="@dimen/button_height"
         android:text="@string/settings" />
 
 </LinearLayout>

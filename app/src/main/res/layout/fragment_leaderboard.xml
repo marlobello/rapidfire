@@ -21,9 +21,9 @@
         android:id="@+id/toggleGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginHorizontal="@dimen/item_spacing"
+        android:layout_marginTop="@dimen/text_spacing"
+        android:layout_marginBottom="@dimen/element_spacing"
         app:singleSelection="true"
         app:selectionRequired="true"
         app:checkedButton="@id/btnStandard">
@@ -48,15 +48,23 @@
 
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/screen_padding"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/tvEmpty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/no_scores_yet"
-        android:textColor="#AAFFFFFF"
+        android:textColor="@color/text_secondary"
         android:textSize="16sp"
         android:gravity="center"
-        android:padding="24dp"
+        android:padding="@dimen/content_padding"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -64,7 +72,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"
+        android:padding="@dimen/element_spacing"
         android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 

@@ -3,15 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="12dp"
+    android:padding="@dimen/item_padding"
     android:gravity="center_vertical">
 
     <!-- Rank -->
     <TextView
         android:id="@+id/tvRank"
-        android:layout_width="40dp"
+        android:layout_width="@dimen/rank_width"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFC828"
+        android:textColor="@color/accent_gold"
         android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center" />
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_marginStart="12dp">
+        android:layout_marginStart="@dimen/item_padding">
 
         <TextView
             android:id="@+id/tvScore"
@@ -36,7 +36,7 @@
             android:id="@+id/tvDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#AAFFFFFF"
+            android:textColor="@color/text_secondary"
             android:textSize="13sp" />
 
     </LinearLayout>
@@ -46,7 +46,7 @@
         android:id="@+id/tvDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#88FFFFFF"
+        android:textColor="@color/text_tertiary"
         android:textSize="12sp" />
 
 </LinearLayout>

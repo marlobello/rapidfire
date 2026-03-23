@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/content_padding">
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchSound"
@@ -30,13 +30,13 @@
             android:text="@string/sound_enabled"
             android:textColor="@color/menu_text"
             android:checked="true"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="@dimen/section_spacing" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#33FFFFFF"
-            android:layout_marginBottom="24dp" />
+            android:background="@color/divider"
+            android:layout_marginBottom="@dimen/section_spacing" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -45,21 +45,21 @@
             android:textColor="@color/menu_text"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="@dimen/element_spacing" />
 
         <TextView
             android:id="@+id/tvAbout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#AAFFFFFF"
+            android:textColor="@color/text_secondary"
             android:textSize="14sp"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="@dimen/screen_padding" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#33FFFFFF"
-            android:layout_marginBottom="24dp" />
+            android:background="@color/divider"
+            android:layout_marginBottom="@dimen/section_spacing" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCheckUpdates"
@@ -68,7 +68,7 @@
             android:layout_height="wrap_content"
             android:text="@string/check_for_updates"
             android:textColor="@color/menu_text"
-            app:strokeColor="#55FFFFFF"
+            app:strokeColor="@color/stroke_subtle"
             app:icon="@android:drawable/stat_sys_download"
             app:iconTint="@color/menu_text" />
 
@@ -76,10 +76,10 @@
             android:id="@+id/tvUpdateStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#AAFFFFFF"
+            android:textColor="@color/text_secondary"
             android:textSize="13sp"
             android:gravity="center"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/element_spacing"
             android:visibility="gone" />
 
     </LinearLayout>

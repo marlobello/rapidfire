@@ -6,6 +6,10 @@
     <string name="resume">Resume</string>
     <string name="restart">Restart</string>
     <string name="quit">Quit to Menu</string>
+    <string name="quit_confirm_title">Quit Game?</string>
+    <string name="quit_confirm_message">Your progress will be lost.</string>
+    <string name="quit_confirm_yes">Quit</string>
+    <string name="quit_confirm_no">Cancel</string>
     <string name="game_over">Game Over</string>
     <string name="round_reached">Round %d</string>
     <string name="save_score">Save Score</string>
@@ -15,6 +19,8 @@
     <string name="about">About</string>
     <string name="about_text">Rapid Fire v%s\nA brick-breaking cannon game.</string>
     <string name="no_scores_yet">No scores yet. Play a game!</string>
+    <string name="scores_load_error">Couldn\'t load scores.</string>
+    <string name="score_save_error">Couldn\'t save score.</string>
     <string name="leaderboard_standard">Standard</string>
     <string name="leaderboard_boss_rush">💀 Boss Rush</string>
     <string name="score_entry">Round %1$d — %2$s</string>

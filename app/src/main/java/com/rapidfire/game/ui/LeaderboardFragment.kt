@@ -48,23 +48,36 @@ class LeaderboardFragment : Fragment() {
 
     private fun loadScores(bossRush: Boolean) {
         val b = _binding ?: return
+        b.progressBar.visibility = View.VISIBLE
+        b.tvEmpty.visibility = View.GONE
+        b.rvScores.visibility = View.GONE
+
         lifecycleScope.launch {
-            val db = ScoreDatabase.getInstance(requireContext())
-            val scores = if (bossRush) {
-                db.scoreDao().getBossRushScores()
-            } else {
-                db.scoreDao().getStandardScores()
-            }
+            try {
+                val db = ScoreDatabase.getInstance(requireContext())
+                val scores = if (bossRush) {
+                    db.scoreDao().getBossRushScores()
+                } else {
+                    db.scoreDao().getStandardScores()
+                }
 
-            if (_binding == null) return@launch
+                if (_binding == null) return@launch
+                b.progressBar.visibility = View.GONE
 
-            if (scores.isEmpty()) {
+                if (scores.isEmpty()) {
+                    b.tvEmpty.visibility = View.VISIBLE
+                    b.rvScores.visibility = View.GONE
+                } else {
+                    b.tvEmpty.visibility = View.GONE
+                    b.rvScores.visibility = View.VISIBLE
+                    b.rvScores.adapter = ScoreAdapter(scores)
+                }
+            } catch (_: Exception) {
+                if (_binding == null) return@launch
+                b.progressBar.visibility = View.GONE
+                b.tvEmpty.text = getString(R.string.scores_load_error)
                 b.tvEmpty.visibility = View.VISIBLE
                 b.rvScores.visibility = View.GONE
-            } else {
-                b.tvEmpty.visibility = View.GONE
-                b.rvScores.visibility = View.VISIBLE
-                b.rvScores.adapter = ScoreAdapter(scores)
             }
         }
     }
