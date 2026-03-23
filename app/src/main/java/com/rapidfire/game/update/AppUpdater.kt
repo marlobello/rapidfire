@@ -1,9 +1,12 @@
 package com.rapidfire.game.update
 
+import android.app.DownloadManager
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
+import android.os.Environment
+import android.widget.Toast
 import com.rapidfire.game.BuildConfig
+import com.rapidfire.game.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -12,7 +15,7 @@ import java.net.URL
 
 data class UpdateInfo(
     val versionName: String,
-    val releaseUrl: String,
+    val downloadUrl: String,
     val releaseNotes: String
 )
 
@@ -51,41 +54,61 @@ class AppUpdater(private val context: Context) {
             val json = connection.inputStream.bufferedReader().use { it.readText() }
             connection.disconnect()
 
-            // Record successful check time
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .edit().putLong(KEY_LAST_CHECK, System.currentTimeMillis()).apply()
 
             val release = JSONObject(json)
-            val tagName = release.getString("tag_name") // e.g. "v1.2.0"
+            val tagName = release.getString("tag_name")
             val remoteVersion = tagName.removePrefix("v")
             val currentVersion = BuildConfig.VERSION_NAME
 
             if (!isNewer(remoteVersion, currentVersion)) return@withContext null
 
-            val releaseUrl = release.getString("html_url")
-            val body = release.optString("body", "").take(500)
+            // Find the APK asset
+            val assets = release.getJSONArray("assets")
+            var apkUrl: String? = null
+            for (i in 0 until assets.length()) {
+                val asset = assets.getJSONObject(i)
+                if (asset.getString("name").endsWith(".apk")) {
+                    apkUrl = asset.getString("browser_download_url")
+                    break
+                }
+            }
+            if (apkUrl == null) return@withContext null
 
-            UpdateInfo(remoteVersion, releaseUrl, body)
+            val body = release.optString("body", "").take(500)
+            UpdateInfo(remoteVersion, apkUrl, body)
         } catch (_: Exception) {
             null
         }
     }
 
     /**
-     * Open the GitHub release page in the browser so the user can download
-     * the APK manually. This avoids REQUEST_INSTALL_PACKAGES which triggers
-     * Google Play Protect warnings.
+     * Download the APK via the system DownloadManager to the public Downloads
+     * folder. The completion notification lets the user tap to install.
+     * No REQUEST_INSTALL_PACKAGES needed — the system handles the install.
      */
-    fun openReleasePage(updateInfo: UpdateInfo) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateInfo.releaseUrl)).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(intent)
+    fun downloadUpdate(updateInfo: UpdateInfo) {
+        val request = DownloadManager.Request(Uri.parse(updateInfo.downloadUrl))
+            .setTitle("Rapid Fire v${updateInfo.versionName}")
+            .setDescription("Tap when complete to install")
+            .setMimeType("application/vnd.android.package-archive")
+            .setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_DOWNLOADS,
+                "rapidfire-v${updateInfo.versionName}.apk"
+            )
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+
+        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        dm.enqueue(request)
+
+        Toast.makeText(
+            context,
+            context.getString(R.string.download_started),
+            Toast.LENGTH_LONG
+        ).show()
     }
 
-    /**
-     * Compare semantic versions. Returns true if [remote] is newer than [local].
-     */
     internal fun isNewer(remote: String, local: String): Boolean {
         val r = remote.split(".").map { it.toIntOrNull() ?: 0 }
         val l = local.split(".").map { it.toIntOrNull() ?: 0 }

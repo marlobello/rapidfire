@@ -23,8 +23,9 @@
     <string name="checking_for_updates">Checking…</string>
     <string name="update_available_title">Update Available</string>
     <string name="update_available_message">Version %1$s is available (you have %2$s).\n\n%3$s</string>
-    <string name="update_now">View Release</string>
+    <string name="update_now">Download Update</string>
     <string name="later">Later</string>
     <string name="no_update_available">You\'re on the latest version.</string>
     <string name="update_check_failed">Couldn\'t check for updates. Please try again later.</string>
+    <string name="download_started">Downloading update… Tap the notification when complete to install.</string>
 </resources>
