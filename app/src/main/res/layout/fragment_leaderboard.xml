@@ -17,6 +17,37 @@
         app:titleTextColor="@color/menu_text"
         app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" />
 
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        app:checkedButton="@id/btnStandard">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStandard"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/leaderboard_standard"
+            android:textColor="@color/menu_text" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBossRush"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/leaderboard_boss_rush"
+            android:textColor="@color/menu_text" />
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
     <TextView
         android:id="@+id/tvEmpty"
         android:layout_width="match_parent"

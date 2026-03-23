@@ -12,5 +12,6 @@ data class ScoreEntity(
     val boardClears: Int = 0,
     val mulligansUsed: Int = 0,
     val shotsFired: Int = 0,
+    val gameMode: String = "CLASSIC",
     val timestamp: Long = System.currentTimeMillis()
 )

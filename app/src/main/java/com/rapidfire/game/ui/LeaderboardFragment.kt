@@ -36,17 +36,35 @@ class LeaderboardFragment : Fragment() {
         // Set empty adapter immediately to avoid "No adapter attached; skipping layout"
         binding.rvScores.adapter = ScoreAdapter(emptyList())
 
+        binding.toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                loadScores(bossRush = checkedId == R.id.btnBossRush)
+            }
+        }
+
+        // Load initial tab
+        loadScores(bossRush = false)
+    }
+
+    private fun loadScores(bossRush: Boolean) {
+        val b = _binding ?: return
         lifecycleScope.launch {
             val db = ScoreDatabase.getInstance(requireContext())
-            val scores = db.scoreDao().getTopScores()
+            val scores = if (bossRush) {
+                db.scoreDao().getBossRushScores()
+            } else {
+                db.scoreDao().getStandardScores()
+            }
+
+            if (_binding == null) return@launch
 
             if (scores.isEmpty()) {
-                binding.tvEmpty.visibility = View.VISIBLE
-                binding.rvScores.visibility = View.GONE
+                b.tvEmpty.visibility = View.VISIBLE
+                b.rvScores.visibility = View.GONE
             } else {
-                binding.tvEmpty.visibility = View.GONE
-                binding.rvScores.visibility = View.VISIBLE
-                binding.rvScores.adapter = ScoreAdapter(scores)
+                b.tvEmpty.visibility = View.GONE
+                b.rvScores.visibility = View.VISIBLE
+                b.rvScores.adapter = ScoreAdapter(scores)
             }
         }
     }
@@ -79,7 +97,13 @@ class LeaderboardFragment : Fragment() {
 
             holder.tvRank.text = "#${position + 1}"
             holder.tvScore.text = "%,d pts".format(entry.score)
-            holder.tvDetails.text = "Round ${entry.round} · ${entry.bricksDestroyed} bricks · ${entry.boardClears} clears"
+
+            val modeTag = when (entry.gameMode) {
+                "QUICK_START_50" -> " · QS50"
+                "QUICK_START_100" -> " · QS100"
+                else -> ""
+            }
+            holder.tvDetails.text = "Round ${entry.round} · ${entry.bricksDestroyed} bricks · ${entry.boardClears} clears$modeTag"
             holder.tvDate.text = dateStr
         }
 

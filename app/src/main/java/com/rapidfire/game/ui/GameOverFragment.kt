@@ -50,9 +50,14 @@ class GameOverFragment : Fragment() {
             lifecycleScope.launch {
                 try {
                     val ctx = requireContext().applicationContext
+                    val isBossRush = gameMode == GameMode.BOSS_RUSH
                     val (previousHigh, _) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                         val db = ScoreDatabase.getInstance(ctx)
-                        val high = db.scoreDao().getHighScore() ?: 0
+                        val high = if (isBossRush) {
+                            db.scoreDao().getBossRushHighScore() ?: 0
+                        } else {
+                            db.scoreDao().getStandardHighScore() ?: 0
+                        }
                         db.scoreDao().insertScore(
                             ScoreEntity(
                                 score = score,
@@ -60,7 +65,8 @@ class GameOverFragment : Fragment() {
                                 bricksDestroyed = bricksDestroyed,
                                 boardClears = boardClears,
                                 mulligansUsed = mulligansUsed,
-                                shotsFired = shotsFired
+                                shotsFired = shotsFired,
+                                gameMode = gameModeName
                             )
                         )
                         high to Unit

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [ScoreEntity::class], version = 2, exportSchema = false)
+@Database(entities = [ScoreEntity::class], version = 3, exportSchema = false)
 abstract class ScoreDatabase : RoomDatabase() {
     abstract fun scoreDao(): ScoreDao
 
@@ -25,13 +25,19 @@ abstract class ScoreDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE scores ADD COLUMN gameMode TEXT NOT NULL DEFAULT 'CLASSIC'")
+            }
+        }
+
         fun getInstance(context: Context): ScoreDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     ScoreDatabase::class.java,
                     "rapidfire_scores.db"
-                ).addMigrations(MIGRATION_1_2)
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build().also { INSTANCE = it }
             }
         }
