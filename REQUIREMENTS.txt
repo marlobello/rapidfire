@@ -1,0 +1,38 @@
+We are going to build a simple game for Android called "Rapid Fire".
+
+Non-Functional Requirements:
+- Follow documented Android best practices in all ways possible
+- Use the most recent supported libraries in all cases
+- Target modern Android versions, and not legacy versions
+- Follow Android security best practices, the game should require very few permissions
+- A release pipeline should create a new version of the game in GitHub
+
+Game layout:
+
+The game board will essentially be a grid that is 7 squares wide and 9 squares tall. Row 9 (the top row) is always empty. At the start of the game row of "bricks" is populated in Row 8. At the start of each round (player turn), a new row of "bricks" will be populated in Row 8. If any bricks remain in Row 8, they will be pushed to Row 7. If there are bricks in Row 7, they will be pushed to Row 6, and so on. Essentially, they whole game board is shifted down one row to make room for the new Row 8. If any brick reaches Row 1 (the bottom row) the game is over.
+
+The grid nature of the board will only be shown as negative space. I.e., spacing between bricks. In fact, the bricks will appear to float in space, because the game board is not shown to the user at all, it is not interacted with and is simply used facilitate layout.
+
+Row Generation:
+
+Each newly created row is populated with some degree of randomness. A random number of bricks (between 1 and 7) is generated, and are placed randomly in the columns available in Row 8. Each brick will have number value that corresponds with the round number. For example in Round 5, the new row may be generated with 4 bricks spread in columns 1,2,3,7. Each brick will have a value of 5 with the number 5 shown on the brick.
+
+New bricks will also be generated in 5 different shapes. The default shape is a square that fills the space of this square of the game board. The other shapes are triangles in the four orientations derived by slicing the square corner to corner. The triangle could have its right angle in each of the four corners of the game board space. Remember that the "game board" is merely a layout tool to help with creating the game play it is not shown or interacted with.
+
+The randomness of the number of bricks, and the shape of bricks will be parameterized in code so that it can easily be adjusted later, but this adjustment is not available to the player. For now, lets say that the shape each brick is 60% chance of being a square, and a 10% chance of being one of the triangles.
+
+Bricks colors are dictated by their current value. Each range of values has a different color representation. The ranges grow until they reach 99. 1-5, 6-20, 21-50, 51-100, 101-200, 201-300, 301-400, 401-500, etc. 
+
+Game Play:
+
+The player will be represented by Cannon on Row 1. At the start of the game, the Canon will start in the center column. The Cannon will have only 1 ball of ammunition. With each successive round, the cannon's ammunition is increased by one (this should always match the round number).
+
+The user can use a finger to drag a dotted line in any direction from the cannon, and upon lifting their finger the cannon will fire all of its ammunition. You can only aim once per round, all ammunition is fired (rapidly) after lifting their finger. The cannon only has an aiming angle of 160 degrees. It cannot shoot lower than 10 degrees from either "horizon". The barrel of the cannon and the aiming dotted line will follow the dragging finger until the finger is lifted and the cannon is fired. The origin of the ball ammunition should be the barrel of the cannon.
+
+Fired balls do not interact with the game board grid at all. They do bounce off the top and sides of the screen/gameboard as well as bricks. Fired balls will will bounce off the side of the game board/screen and continue bouncing until they reach the bottom of Row 1, then they will despawn. When the first ball of a round despawns, the cannon will reposition itself along the baseline of the game board to fire from that location. The cannon is not rigidly bound by the squares of the game board at all, it can slide along the baseline to any pixel precise location.
+
+Balls should follow basic physics rules in that the angle of incidences equals the and of reflection. There is no gravity or friction in this game. Hitting the side of a square and hitting the hypotenuse of a triangle from the same direction will obviously result in different reflections. Squares and Triangular bricks actually have very small radius' at the their corners. Thus if a ball hits a corner of a brick, the exact angle it has hit in comparison to the radius will be taken into account.
+
+Anytime a ball hits a brick, the bricks value will decrement by 1. When the bricks value decrements to 0, the brick will explode and be removed from the board. The point of the game is to survive as long as possible and reach as high of a level as possible. The player does this by aiming the cannon in a strategic direction to maximize the number of bounces off from bricks. If bricks get pushed down to Row 1, the game ends.
+
+If you need me to create an graphic assets in the form of SVG, let me know, otherwise create as much as you can on your own.

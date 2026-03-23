@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainMenuFragment">
+
+    <fragment
+        android:id="@+id/mainMenuFragment"
+        android:name="com.rapidfire.game.ui.MainMenuFragment"
+        android:label="Main Menu">
+        <action
+            android:id="@+id/action_menu_to_game"
+            app:destination="@id/gameFragment"
+            app:popUpTo="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_menu_to_settings"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_menu_to_leaderboard"
+            app:destination="@id/leaderboardFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/gameFragment"
+        android:name="com.rapidfire.game.ui.GameFragment"
+        android:label="Game">
+        <action
+            android:id="@+id/action_game_to_gameOver"
+            app:destination="@id/gameOverFragment"
+            app:popUpTo="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_game_to_menu"
+            app:destination="@id/mainMenuFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/gameOverFragment"
+        android:name="com.rapidfire.game.ui.GameOverFragment"
+        android:label="Game Over">
+        <argument android:name="round" app:argType="integer" />
+        <argument android:name="score" app:argType="integer" android:defaultValue="0" />
+        <argument android:name="bricksDestroyed" app:argType="integer" android:defaultValue="0" />
+        <argument android:name="boardClears" app:argType="integer" android:defaultValue="0" />
+        <argument android:name="mulligansUsed" app:argType="integer" android:defaultValue="0" />
+        <argument android:name="shotsFired" app:argType="integer" android:defaultValue="0" />
+        <action
+            android:id="@+id/action_gameOver_to_game"
+            app:destination="@id/gameFragment"
+            app:popUpTo="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_gameOver_to_menu"
+            app:destination="@id/mainMenuFragment"
+            app:popUpTo="@id/mainMenuFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.rapidfire.game.ui.SettingsFragment"
+        android:label="Settings" />
+
+    <fragment
+        android:id="@+id/leaderboardFragment"
+        android:name="com.rapidfire.game.ui.LeaderboardFragment"
+        android:label="Leaderboard" />
+
+</navigation>

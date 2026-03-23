@@ -1,0 +1,23 @@
+<resources>
+    <color name="dark_background">#FF0D0D0D</color>
+    <color name="cannon_color">#FFE0E0E0</color>
+    <color name="ball_color">#FFFFFFFF</color>
+    <color name="aim_line_color">#80FFFFFF</color>
+    <color name="hud_text_color">#FFFFFFFF</color>
+
+    <!-- Brick colors by value range -->
+    <color name="brick_1_5">#FF4CAF50</color>       <!-- Green -->
+    <color name="brick_6_20">#FFFFEB3B</color>      <!-- Yellow -->
+    <color name="brick_21_50">#FFFF9800</color>     <!-- Orange -->
+    <color name="brick_51_100">#FFF44336</color>    <!-- Red -->
+    <color name="brick_101_200">#FFE91E63</color>   <!-- Pink -->
+    <color name="brick_201_300">#FF9C27B0</color>   <!-- Purple -->
+    <color name="brick_301_400">#FF3F51B5</color>   <!-- Indigo -->
+    <color name="brick_401_500">#FF2196F3</color>   <!-- Blue -->
+    <color name="brick_501_plus">#FF00BCD4</color>  <!-- Cyan -->
+
+    <!-- UI colors -->
+    <color name="menu_background">#FF121212</color>
+    <color name="menu_button">#FF1E88E5</color>
+    <color name="menu_text">#FFFFFFFF</color>
+</resources>
