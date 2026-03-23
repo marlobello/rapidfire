@@ -7,11 +7,18 @@
     android:background="@color/menu_background"
     android:padding="32dp">
 
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/rapidfire_logo"
+        android:contentDescription="@string/app_name"
+        android:layout_marginBottom="24dp" />
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="64dp">
+        android:layout_marginBottom="48dp">
 
         <TextView
             android:layout_width="wrap_content"
