@@ -131,6 +131,12 @@ class CollisionDetector(
                 val (nvx, nvy) = ReflectionCalculator.reflectOffCorner(
                     ball.vx, ball.vy, ball.x, ball.y, cx, cy
                 )
+                // Push ball outside the corner collision zone
+                if (dist > 0.001f) {
+                    val separation = r + cornerR + 0.5f
+                    ball.x = cx + (dx / dist) * separation
+                    ball.y = cy + (dy / dist) * separation
+                }
                 return CollisionResult(true, nvx, nvy, brick)
             }
         }
@@ -143,6 +149,10 @@ class CollisionDetector(
                 val (nvx, nvy) = ReflectionCalculator.reflect(
                     ball.vx, ball.vy, edge.normalX, edge.normalY
                 )
+                // Push ball outside the edge collision zone
+                val pushDist = r - dist + 0.5f
+                ball.x += edge.normalX * pushDist
+                ball.y += edge.normalY * pushDist
                 return CollisionResult(true, nvx, nvy, brick)
             }
         }

@@ -73,6 +73,9 @@ class GameLoop(
             for (step in 0 until subSteps) {
                 if (!ball.active) break
 
+                // Advance hit cooldown
+                if (ball.stepsSinceHit < Int.MAX_VALUE) ball.stepsSinceHit++
+
                 // Move ball
                 ball.x += ball.vx * subDt
                 ball.y += ball.vy * subDt
@@ -88,12 +91,21 @@ class GameLoop(
                 // Spatial lookup: only check bricks in nearby grid cells
                 val nearbyCells = collisionDetector.getNearbyGridCells(ball)
                 for ((row, col) in nearbyCells) {
+                    // Skip the brick we just hit (2-step cooldown prevents double-hit)
+                    if (row == ball.lastHitRow && col == ball.lastHitCol && ball.stepsSinceHit < 3) {
+                        continue
+                    }
+
                     val brick = state.board.getBrick(row, col) ?: continue
                     if (brick.isDestroyed) continue
                     val result = collisionDetector.checkBrickCollision(ball, brick)
                     if (result.hit) {
                         ball.vx = result.newVx
                         ball.vy = result.newVy
+                        ball.lastHitRow = row
+                        ball.lastHitCol = col
+                        ball.stepsSinceHit = 0
+
                         brick.hit()
                         if (brick.isDestroyed) {
                             val brickRect = collisionDetector.getBrickRect(brick.row, brick.col)
