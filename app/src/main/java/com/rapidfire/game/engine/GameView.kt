@@ -72,7 +72,10 @@ class GameView @JvmOverloads constructor(
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        stopThread()
+        // Signal the thread to stop but don't block the main thread with join().
+        // The thread will exit its loop on the next iteration.
+        gameThread?.isRunning = false
+        gameThread = null
     }
 
     fun startGame() {
@@ -114,15 +117,9 @@ class GameView @JvmOverloads constructor(
 
     private fun stopThread() {
         gameThread?.isRunning = false
-        var retry = true
-        while (retry) {
-            try {
-                gameThread?.join()
-                retry = false
-            } catch (_: InterruptedException) {
-                // retry
-            }
-        }
+        try {
+            gameThread?.join(500) // Wait at most 500ms
+        } catch (_: InterruptedException) { }
         gameThread = null
     }
 

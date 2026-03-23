@@ -46,19 +46,22 @@ class GameOverFragment : Fragment() {
         if (round > 0) {
             lifecycleScope.launch {
                 try {
-                    val db = ScoreDatabase.getInstance(requireContext())
-                    val previousHigh = db.scoreDao().getHighScore() ?: 0
-
-                    db.scoreDao().insertScore(
-                        ScoreEntity(
-                            score = score,
-                            round = round,
-                            bricksDestroyed = bricksDestroyed,
-                            boardClears = boardClears,
-                            mulligansUsed = mulligansUsed,
-                            shotsFired = shotsFired
+                    val ctx = requireContext().applicationContext
+                    val (previousHigh, _) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                        val db = ScoreDatabase.getInstance(ctx)
+                        val high = db.scoreDao().getHighScore() ?: 0
+                        db.scoreDao().insertScore(
+                            ScoreEntity(
+                                score = score,
+                                round = round,
+                                bricksDestroyed = bricksDestroyed,
+                                boardClears = boardClears,
+                                mulligansUsed = mulligansUsed,
+                                shotsFired = shotsFired
+                            )
                         )
-                    )
+                        high to Unit
+                    }
 
                     if (score > previousHigh && score > 0 && _binding != null) {
                         binding.tvNewHighScore.visibility = View.VISIBLE
