@@ -18,6 +18,8 @@
     <string name="sound_enabled">Sound Effects</string>
     <string name="about">About</string>
     <string name="about_text">Rapid Fire v%s\nA brick-breaking cannon game.</string>
+    <string name="about_github">📦 GitHub Repository</string>
+    <string name="about_license">📄 MIT License</string>
     <string name="no_scores_yet">No scores yet. Play a game!</string>
     <string name="scores_load_error">Couldn\'t load scores.</string>
     <string name="score_save_error">Couldn\'t save score.</string>

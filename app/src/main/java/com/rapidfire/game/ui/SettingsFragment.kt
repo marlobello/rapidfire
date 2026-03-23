@@ -1,6 +1,8 @@
 package com.rapidfire.game.ui
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -41,6 +43,13 @@ class SettingsFragment : Fragment() {
         }
 
         binding.tvAbout.text = getString(R.string.about_text, BuildConfig.VERSION_NAME)
+
+        binding.tvGithub.setOnClickListener {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/marlobello/rapidfire")))
+        }
+        binding.tvLicense.setOnClickListener {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/marlobello/rapidfire/blob/main/LICENSE")))
+        }
 
         binding.btnCheckUpdates.setOnClickListener {
             if (pendingUpdate != null) {
