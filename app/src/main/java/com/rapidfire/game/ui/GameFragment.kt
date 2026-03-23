@@ -27,24 +27,26 @@ class GameFragment : Fragment() {
         soundManager = SoundManager(requireContext())
         binding.gameView.soundManager = soundManager
 
-        binding.gameView.onGameOver = { stats ->
-            binding.gameView.post {
-                // Guard: fragment may have detached or already navigated away
+        // Capture the view reference so the game thread closure doesn't touch binding
+        val gameView = binding.gameView
+
+        gameView.onGameOver = { stats ->
+            gameView.post {
                 if (_binding != null && isAdded) {
                     try {
                         findNavController().navigate(
                             R.id.action_game_to_gameOver,
                             stats
                         )
-                    } catch (_: IllegalArgumentException) {
-                        // Already navigated — ignore
+                    } catch (_: Exception) {
+                        // Already navigated or fragment detached
                     }
                 }
             }
         }
 
         // Pause icon in HUD
-        binding.gameView.onPauseRequested = { togglePause() }
+        gameView.onPauseRequested = { togglePause() }
 
         // Pause controls
         binding.btnResume.setOnClickListener {
@@ -60,30 +62,36 @@ class GameFragment : Fragment() {
         binding.btnQuit.setOnClickListener {
             try {
                 findNavController().navigate(R.id.action_game_to_menu)
-            } catch (_: IllegalArgumentException) { }
+            } catch (_: Exception) { }
         }
     }
 
     fun togglePause() {
-        if (binding.pauseOverlay.visibility == View.VISIBLE) {
-            binding.pauseOverlay.visibility = View.GONE
-            binding.gameView.resumeGame()
+        val b = _binding ?: return
+        if (b.pauseOverlay.visibility == View.VISIBLE) {
+            b.pauseOverlay.visibility = View.GONE
+            b.gameView.resumeGame()
         } else {
-            binding.pauseOverlay.visibility = View.VISIBLE
-            binding.gameView.pauseGame()
+            b.pauseOverlay.visibility = View.VISIBLE
+            b.gameView.pauseGame()
         }
     }
 
     override fun onPause() {
         super.onPause()
-        binding.gameView.pauseGame()
-        binding.pauseOverlay.visibility = View.VISIBLE
+        val b = _binding ?: return
+        b.gameView.pauseGame()
+        b.pauseOverlay.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        // Null out callbacks before destroying binding to prevent game thread
+        // from invoking them after the view is gone
+        _binding?.gameView?.onGameOver = null
+        _binding?.gameView?.onPauseRequested = null
         soundManager?.release()
         soundManager = null
         _binding = null
+        super.onDestroyView()
     }
 }

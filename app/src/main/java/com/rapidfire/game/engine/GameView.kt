@@ -182,6 +182,7 @@ class GameView @JvmOverloads constructor(
 
             if (gameState.isGameOver && !gameOverHandled) {
                 gameOverHandled = true
+                isPaused = true // Stop the game loop from running further
                 val stats = android.os.Bundle().apply {
                     putInt("round", gameState.round)
                     putInt("score", gameState.score)
