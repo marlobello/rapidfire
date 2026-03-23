@@ -6,7 +6,6 @@ import android.graphics.DashPathEffect
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
 import com.rapidfire.game.model.Ball
@@ -44,9 +43,6 @@ class Renderer {
         textSize = 56f
         textAlign = Paint.Align.LEFT
         isFakeBoldText = true
-    }
-    private val backgroundPaint = Paint().apply {
-        color = ColorPalette.backgroundColor
     }
     private val boundaryPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.argb(80, 255, 255, 255)
@@ -87,7 +83,6 @@ class Renderer {
     }
     private val flashPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val bgGradientPaint = Paint()
-    private var bgGradient: RadialGradient? = null
     private var bgLinearGradient: LinearGradient? = null
     private var lastScreenW = 0f
     private var lastScreenH = 0f
@@ -163,8 +158,6 @@ class Renderer {
         if (screenW != lastScreenW || screenH != lastScreenH) {
             lastScreenW = screenW
             lastScreenH = screenH
-            // Top-to-bottom linear gradient for a sleek, non-bullseye look
-            bgGradient = null // clear old radial
             bgLinearGradient = LinearGradient(
                 0f, 0f, 0f, screenH,
                 intArrayOf(

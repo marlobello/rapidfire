@@ -95,7 +95,7 @@ class MainMenuFragment : Fragment() {
                                 binding.btnUpdate.text = getString(R.string.download_complete)
                             }
                         },
-                        onError = { msg ->
+                        onError = { _ ->
                             if (_binding != null) {
                                 binding.btnUpdate.isEnabled = true
                                 binding.btnUpdate.text = getString(R.string.update_retry)

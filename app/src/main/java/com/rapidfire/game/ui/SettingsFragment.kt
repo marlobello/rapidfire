@@ -121,7 +121,7 @@ class SettingsFragment : Fragment() {
                     setStatus(getString(R.string.tap_notification_to_install))
                 }
             },
-            onError = { msg ->
+            onError = { _ ->
                 if (_binding != null) {
                     binding.btnCheckUpdates.isEnabled = true
                     binding.btnCheckUpdates.text = getString(R.string.update_retry)
