@@ -19,6 +19,7 @@ class MainMenuFragment : Fragment() {
 
     private var _binding: FragmentMainMenuBinding? = null
     private val binding get() = _binding!!
+    private var updater: AppUpdater? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentMainMenuBinding.inflate(inflater, container, false)
@@ -72,8 +73,9 @@ class MainMenuFragment : Fragment() {
 
     private fun checkForUpdates() {
         lifecycleScope.launch {
-            val updater = AppUpdater(requireContext().applicationContext)
-            val result = updater.checkForUpdate(force = false)
+            val appUpdater = AppUpdater(requireContext().applicationContext)
+            updater = appUpdater
+            val result = appUpdater.checkForUpdate(force = false)
 
             if (_binding == null || !isAdded) return@launch
 
@@ -87,7 +89,7 @@ class MainMenuFragment : Fragment() {
                 binding.btnUpdate.setOnClickListener {
                     binding.btnUpdate.isEnabled = false
                     binding.btnUpdate.text = getString(R.string.downloading)
-                    updater.downloadAndInstall(
+                    appUpdater.downloadAndInstall(
                         info,
                         onDownloadStarted = {},
                         onDownloadComplete = {
@@ -110,5 +112,7 @@ class MainMenuFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        updater?.cleanup()
+        updater = null
     }
 }

@@ -169,6 +169,11 @@ class AppUpdater(private val context: Context) {
         }
     }
 
+    /** Unregister any pending download receiver. Call from Fragment.onDestroyView(). */
+    fun cleanup() {
+        unregisterReceiver()
+    }
+
     internal fun isNewer(remote: String, local: String): Boolean {
         val r = remote.split(".").map { it.toIntOrNull() ?: 0 }
         val l = local.split(".").map { it.toIntOrNull() ?: 0 }

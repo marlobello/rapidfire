@@ -143,6 +143,7 @@ class SettingsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        updater?.cleanup()
         updater = null
         pendingUpdate = null
     }
