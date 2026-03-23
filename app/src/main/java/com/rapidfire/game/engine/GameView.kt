@@ -59,7 +59,12 @@ class GameView @JvmOverloads constructor(
             offsetX = renderer.offsetX,
             offsetY = renderer.offsetY
         )
-        inputHandler.setCannonScreenY(renderer.cannonScreenY)
+        inputHandler.setPlayAreaBounds(
+            left = renderer.playAreaLeft,
+            right = renderer.playAreaRight,
+            top = renderer.playAreaTop,
+            cannonY = renderer.cannonScreenY
+        )
 
         // Pass screen-space bounds to GameState for ball spawning & cannon clamping
         gameState.cannonScreenY = renderer.cannonScreenY
