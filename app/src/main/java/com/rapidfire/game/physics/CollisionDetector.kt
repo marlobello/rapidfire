@@ -83,6 +83,10 @@ class CollisionDetector(
             if (ball.x < leftBound + r) { ball.x = leftBound + r; if (ball.vx < 0f) ball.vx = -ball.vx }
             if (ball.x > rightBound - r) { ball.x = rightBound - r; if (ball.vx > 0f) ball.vx = -ball.vx }
             if (ball.y < topBound + r) { ball.y = topBound + r; if (ball.vy < 0f) ball.vy = -ball.vy }
+            // Safety: despawn if ball is past the baseline (lost by CCD vs old sub-step check)
+            if (ball.y + r >= bottomBound) {
+                return CcdResult(hitBricks, despawned = true, hadWallBounce)
+            }
 
             var bestTime = Float.MAX_VALUE
             var bestNx = 0f
@@ -227,6 +231,10 @@ class CollisionDetector(
         if (ball.x < leftBound + r) { ball.x = leftBound + r; if (ball.vx < 0f) ball.vx = -ball.vx }
         if (ball.x > rightBound - r) { ball.x = rightBound - r; if (ball.vx > 0f) ball.vx = -ball.vx }
         if (ball.y < topBound + r) { ball.y = topBound + r; if (ball.vy < 0f) ball.vy = -ball.vy }
+        // Final safety: despawn if ball ended up past the baseline
+        if (ball.y + r >= bottomBound) {
+            return CcdResult(hitBricks, despawned = true, hadWallBounce)
+        }
 
         return CcdResult(hitBricks, despawned = false, hadWallBounce)
     }
