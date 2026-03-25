@@ -20,4 +20,5 @@
     <dimen name="stats_padding">16dp</dimen>
     <dimen name="banner_width">260dp</dimen>
     <dimen name="rank_width">40dp</dimen>
+    <dimen name="card_corner_radius">12dp</dimen>
 </resources>

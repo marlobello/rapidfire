@@ -31,129 +31,195 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:visibility="gone"
-            android:layout_marginBottom="@dimen/item_padding" />
-
-        <!-- Score (prominent) -->
-        <TextView
-            android:id="@+id/tvScore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/menu_text"
-            android:textSize="48sp"
-            android:textStyle="bold"
             android:layout_marginBottom="@dimen/text_spacing" />
 
+        <!-- Placement banner (hidden by default) -->
         <TextView
-            android:id="@+id/tvRound"
+            android:id="@+id/tvPlacement"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_secondary"
-            android:textSize="20sp"
-            android:layout_marginBottom="@dimen/section_spacing" />
+            android:textColor="@color/accent_gold"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:layout_marginBottom="@dimen/item_padding" />
 
-        <!-- Stats grid -->
+        <!-- Stats Card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@color/surface_overlay"
-            android:padding="@dimen/stats_padding"
-            android:layout_marginBottom="@dimen/screen_padding">
+            android:background="@drawable/bg_stats_card"
+            android:padding="20dp"
+            android:layout_marginBottom="@dimen/section_spacing">
+
+            <!-- Score hero section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SCORE"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.15"
+                android:gravity="center" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/tvScore"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Game Stats"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp"
+                android:textColor="@color/menu_text"
+                android:textSize="48sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.1"
-                android:layout_marginBottom="@dimen/item_padding" />
+                android:gravity="center" />
 
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="@dimen/element_spacing">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Bricks Destroyed"
-                    android:textColor="@color/text_label"
-                    android:textSize="16sp" />
-                <TextView
-                    android:id="@+id/tvBricksDestroyed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/menu_text"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                android:text="ROUND"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.15"
+                android:gravity="center"
+                android:layout_marginTop="@dimen/element_spacing" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvRound"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="@dimen/element_spacing">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Board Clears"
-                    android:textColor="@color/text_label"
-                    android:textSize="16sp" />
-                <TextView
-                    android:id="@+id/tvBoardClears"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/menu_text"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                android:textColor="@color/menu_text"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:gravity="center" />
 
-            <LinearLayout
+            <!-- Divider -->
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="@dimen/element_spacing">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Shots Fired"
-                    android:textColor="@color/text_label"
-                    android:textSize="16sp" />
-                <TextView
-                    android:id="@+id/tvShotsFired"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/menu_text"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                android:layout_height="1dp"
+                android:background="@color/divider"
+                android:layout_marginVertical="@dimen/item_spacing" />
 
+            <!-- Stats 2x2 grid - row 1 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
-                <TextView
+
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Mulligans Used"
-                    android:textColor="@color/text_label"
-                    android:textSize="16sp" />
-                <TextView
-                    android:id="@+id/tvMulligansUsed"
-                    android:layout_width="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tvBricksDestroyed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/menu_text"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bricks"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/menu_text"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tvBoardClears"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/menu_text"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Clears"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Stats 2x2 grid - row 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="@dimen/item_spacing">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tvShotsFired"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/menu_text"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Shots"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:id="@+id/tvMulligansUsed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/menu_text"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mulligans"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
             </LinearLayout>
 
         </LinearLayout>
+
+        <!-- Leaderboard section -->
+        <TextView
+            android:id="@+id/tvLeaderboardTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="@dimen/element_spacing" />
+
+        <LinearLayout
+            android:id="@+id/leaderboardContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_stats_card"
+            android:paddingVertical="4dp"
+            android:layout_marginBottom="@dimen/section_spacing" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPlayAgain"

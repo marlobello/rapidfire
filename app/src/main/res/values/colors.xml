@@ -35,6 +35,8 @@
     <!-- Surface/overlay -->
     <color name="overlay_dark">#CC000000</color>
     <color name="surface_overlay">#18FFFFFF</color>
+    <color name="surface_overlay_strong">#28FFFFFF</color>
     <color name="divider">#33FFFFFF</color>
     <color name="stroke_subtle">#55FFFFFF</color>
+    <color name="leaderboard_highlight">#30FFC828</color>
 </resources>

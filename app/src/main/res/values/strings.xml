@@ -23,6 +23,9 @@
     <string name="no_scores_yet">No scores yet. Play a game!</string>
     <string name="scores_load_error">Couldn\'t load scores.</string>
     <string name="score_save_error">Couldn\'t save score.</string>
+    <string name="leaderboard_placement">#%d on the leaderboard!</string>
+    <string name="standard_top_10">Standard Top 10</string>
+    <string name="boss_rush_top_10">Boss Rush Top 10</string>
     <string name="leaderboard_standard">Standard</string>
     <string name="leaderboard_boss_rush">💀 Boss Rush</string>
     <string name="score_entry">Round %1$d — %2$s</string>
