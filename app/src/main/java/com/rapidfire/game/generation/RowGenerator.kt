@@ -12,8 +12,8 @@ class RowGenerator(private val params: GenerationParams = GenerationParams()) {
         val columns = (0 until Constants.GRID_COLUMNS).shuffled().take(brickCount)
 
         return columns.map { col ->
-            // Boss rounds (every 10th): each brick has 50% chance of double value
-            val brickValue = if (roundNumber % 10 == 0 && Random.nextFloat() < 0.75f) {
+            // Boss rounds (every 10th): each brick has 60% chance of double value
+            val brickValue = if (roundNumber % 10 == 0 && Random.nextFloat() < 0.60f) {
                 roundNumber * 2
             } else {
                 roundNumber
