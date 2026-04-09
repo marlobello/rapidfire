@@ -87,7 +87,7 @@ class GameState {
         balls.clear()
         round = gameMode.baseRound
         score = 0
-        mulligans = 0
+        mulligans = 1
         isTurbo = false
         isGameOver = false
         isFirstRound = true
