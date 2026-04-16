@@ -38,10 +38,10 @@ class CollisionDetector(
 ) {
     companion object {
         private const val EPSILON = 0.0001f
-        private const val NUDGE = 0.15f
+        private const val NUDGE = 0.05f
         private const val MAX_BOUNCES = 10
-        /** When edge and corner hit times differ by less than this, prefer the edge. */
-        private const val TIEBREAK_TOLERANCE = 0.0005f
+        private const val MAX_DEPENETRATION_ITERS = 4
+        private const val DEPENETRATION_SLOP = 0.1f
     }
 
     fun updateDimensions(
@@ -85,10 +85,13 @@ class CollisionDetector(
             if (ball.x < leftBound + r) { ball.x = leftBound + r; if (ball.vx < 0f) ball.vx = -ball.vx }
             if (ball.x > rightBound - r) { ball.x = rightBound - r; if (ball.vx > 0f) ball.vx = -ball.vx }
             if (ball.y < topBound + r) { ball.y = topBound + r; if (ball.vy < 0f) ball.vy = -ball.vy }
-            // Safety: despawn if ball is past the baseline (lost by CCD vs old sub-step check)
+            // Safety: despawn if ball is past the baseline
             if (ball.y + r >= bottomBound) {
                 return CcdResult(hitBricks, despawned = true, hadWallBounce)
             }
+
+            // Depenetration: push ball out of any overlapping brick geometry
+            depenetrate(ball, r, cornerR, board)
 
             var bestTime = Float.MAX_VALUE
             var bestNx = 0f
@@ -144,28 +147,22 @@ class CollisionDetector(
                 if (brick.isDestroyed) continue
                 val rect = getBrickRect(row, col)
 
-                // Edges (inset by cornerR so edges don't overlap corner zones)
+                // Edges (full length — corners only fire for endpoint misses)
                 val edges = BrickShapeGeometry.getEdges(brick.shape, rect)
                 for (edge in edges) {
-                    val t = sweepCircleEdge(ball.x, ball.y, ball.vx, ball.vy, r, edge, cornerR)
-                    if (t > EPSILON && t <= remainingTime) {
-                        if (t < bestTime - TIEBREAK_TOLERANCE) {
-                            // Clearly earlier than current best — always wins
-                            bestTime = t; bestNx = edge.normalX; bestNy = edge.normalY
-                            bestBrick = brick; bestIsBaseline = false; bestIsCorner = false; bestIsWall = false
-                        } else if (t < bestTime + TIEBREAK_TOLERANCE && bestIsCorner) {
-                            // Within tolerance of a corner hit — edge wins tiebreak
-                            bestTime = t; bestNx = edge.normalX; bestNy = edge.normalY
-                            bestBrick = brick; bestIsBaseline = false; bestIsCorner = false; bestIsWall = false
-                        }
+                    val t = sweepCircleEdge(ball.x, ball.y, ball.vx, ball.vy, r, edge)
+                    if (t > EPSILON && t < bestTime && t <= remainingTime) {
+                        bestTime = t; bestNx = edge.normalX; bestNy = edge.normalY
+                        bestBrick = brick; bestIsBaseline = false; bestIsCorner = false; bestIsWall = false
                     }
                 }
 
-                // Corners
+                // Corners — only check if no edge of this brick already won at an
+                // earlier or equal time (corners handle the endpoint gaps)
                 val corners = BrickShapeGeometry.getCorners(brick.shape, rect)
                 for ((cx, cy) in corners) {
                     val t = sweepCirclePoint(ball.x, ball.y, ball.vx, ball.vy, r + cornerR, cx, cy)
-                    if (t > EPSILON && t < bestTime - TIEBREAK_TOLERANCE && t <= remainingTime) {
+                    if (t > EPSILON && t < bestTime && t <= remainingTime) {
                         bestTime = t; bestBrick = brick; bestIsBaseline = false
                         bestIsCorner = true; bestCornerX = cx; bestCornerY = cy; bestIsWall = false
                     }
@@ -249,13 +246,105 @@ class CollisionDetector(
     }
 
     /**
-     * Swept circle vs line segment (edge), with endpoints inset by [cornerR]
-     * so the edge doesn't extend into the rounded corner zones.
+     * Push the ball out of any overlapping brick geometry.
+     * Finds the closest point on any nearby brick boundary and pushes
+     * the ball along the separation normal until it is no longer overlapping.
+     */
+    private fun depenetrate(ball: Ball, r: Float, cornerR: Float, board: GameBoard) {
+        for (iter in 0 until MAX_DEPENETRATION_ITERS) {
+            var worstPenetration = 0f
+            var pushNx = 0f
+            var pushNy = 0f
+
+            // Check nearby cells
+            val col0 = ((ball.x - r - cornerR - offsetX) / cellWidth).toInt().coerceIn(0, Constants.GRID_COLUMNS - 1)
+            val col1 = ((ball.x + r + cornerR - offsetX) / cellWidth).toInt().coerceIn(0, Constants.GRID_COLUMNS - 1)
+            val sRow0 = ((ball.y - r - cornerR - offsetY) / cellHeight).toInt().coerceIn(0, Constants.GRID_ROWS - 1)
+            val sRow1 = ((ball.y + r + cornerR - offsetY) / cellHeight).toInt().coerceIn(0, Constants.GRID_ROWS - 1)
+            val gRow0 = (Constants.GRID_ROWS - 1 - sRow1).coerceIn(0, Constants.GRID_ROWS - 1)
+            val gRow1 = (Constants.GRID_ROWS - 1 - sRow0).coerceIn(0, Constants.GRID_ROWS - 1)
+
+            for (row in gRow0..gRow1) {
+                for (col in col0..col1) {
+                    val brick = board.getBrick(row, col) ?: continue
+                    if (brick.isDestroyed) continue
+                    val rect = getBrickRect(row, col)
+
+                    // Check edges
+                    val edges = BrickShapeGeometry.getEdges(brick.shape, rect)
+                    for (edge in edges) {
+                        val (dist, nx, ny) = closestPointOnEdge(ball.x, ball.y, edge)
+                        val penetration = r - dist
+                        if (penetration > worstPenetration) {
+                            worstPenetration = penetration
+                            pushNx = nx
+                            pushNy = ny
+                        }
+                    }
+
+                    // Check corners
+                    val corners = BrickShapeGeometry.getCorners(brick.shape, rect)
+                    for ((cx, cy) in corners) {
+                        val dx = ball.x - cx
+                        val dy = ball.y - cy
+                        val dist = sqrt(dx * dx + dy * dy)
+                        val penetration = (r + cornerR) - dist
+                        if (penetration > worstPenetration && dist > EPSILON) {
+                            worstPenetration = penetration
+                            pushNx = dx / dist
+                            pushNy = dy / dist
+                        }
+                    }
+                }
+            }
+
+            if (worstPenetration <= EPSILON) break
+
+            // Push ball out
+            val pushDist = worstPenetration + DEPENETRATION_SLOP
+            ball.x += pushNx * pushDist
+            ball.y += pushNy * pushDist
+        }
+    }
+
+    /**
+     * Returns (distance, normalX, normalY) from point (px,py) to the closest
+     * point on the edge segment. Normal points from edge toward the point.
+     */
+    private fun closestPointOnEdge(px: Float, py: Float, edge: Edge): Triple<Float, Float, Float> {
+        val edgeDx = edge.x2 - edge.x1
+        val edgeDy = edge.y2 - edge.y1
+        val edgeLenSq = edgeDx * edgeDx + edgeDy * edgeDy
+        if (edgeLenSq < EPSILON) {
+            val dx = px - edge.x1
+            val dy = py - edge.y1
+            val d = sqrt(dx * dx + dy * dy)
+            return if (d > EPSILON) Triple(d, dx / d, dy / d) else Triple(0f, 0f, 0f)
+        }
+
+        // Project point onto edge line, clamped to segment
+        val t = ((px - edge.x1) * edgeDx + (py - edge.y1) * edgeDy) / edgeLenSq
+        val clamped = t.coerceIn(0f, 1f)
+        val closestX = edge.x1 + clamped * edgeDx
+        val closestY = edge.y1 + clamped * edgeDy
+        val dx = px - closestX
+        val dy = py - closestY
+        val dist = sqrt(dx * dx + dy * dy)
+        return if (dist > EPSILON) {
+            Triple(dist, dx / dist, dy / dist)
+        } else {
+            // Ball center is on the edge — use edge normal
+            Triple(0f, edge.normalX, edge.normalY)
+        }
+    }
+
+    /**
+     * Swept circle vs line segment (edge).
      * Returns time of first contact, or Float.MAX_VALUE if no hit.
      */
     private fun sweepCircleEdge(
         px: Float, py: Float, vx: Float, vy: Float,
-        radius: Float, edge: Edge, cornerR: Float = 0f
+        radius: Float, edge: Edge
     ): Float {
         val nx = edge.normalX
         val ny = edge.normalY
@@ -275,17 +364,14 @@ class CollisionDetector(
         val contactX = px + vx * t - radius * nx
         val contactY = py + vy * t - radius * ny
 
-        // Check if contact point is within segment bounds, inset by cornerR
+        // Check if contact point is within segment bounds
         val edgeDx = edge.x2 - edge.x1
         val edgeDy = edge.y2 - edge.y1
         val edgeLenSq = edgeDx * edgeDx + edgeDy * edgeDy
         if (edgeLenSq < EPSILON) return Float.MAX_VALUE
 
-        val edgeLen = sqrt(edgeLenSq)
         val s = ((contactX - edge.x1) * edgeDx + (contactY - edge.y1) * edgeDy) / edgeLenSq
-        // Inset range: exclude cornerR-sized zones at both endpoints
-        val inset = cornerR / edgeLen
-        if (s < inset || s > 1f - inset) return Float.MAX_VALUE
+        if (s < 0f || s > 1f) return Float.MAX_VALUE
 
         return t
     }
