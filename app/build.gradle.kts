@@ -11,8 +11,8 @@ android {
         applicationId = "com.rapidfire.game"
         minSdk = 31
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.2.4"
+        versionCode = 15
+        versionName = "1.2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
