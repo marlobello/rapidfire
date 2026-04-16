@@ -149,14 +149,12 @@ class CollisionDetector(
                 for (edge in edges) {
                     val t = sweepCircleEdge(ball.x, ball.y, ball.vx, ball.vy, r, edge, cornerR)
                     if (t > EPSILON && t <= remainingTime) {
-                        // Edge hits win ties: prefer edge if times are within tolerance
-                        val dominated = t > bestTime + TIEBREAK_TOLERANCE
-                        val tie = t < bestTime + TIEBREAK_TOLERANCE && !bestIsCorner
-                        if (!dominated && !tie) {
+                        if (t < bestTime - TIEBREAK_TOLERANCE) {
+                            // Clearly earlier than current best — always wins
                             bestTime = t; bestNx = edge.normalX; bestNy = edge.normalY
                             bestBrick = brick; bestIsBaseline = false; bestIsCorner = false; bestIsWall = false
-                        } else if (!dominated && bestIsCorner) {
-                            // Edge wins the tiebreak over a corner hit
+                        } else if (t < bestTime + TIEBREAK_TOLERANCE && bestIsCorner) {
+                            // Within tolerance of a corner hit — edge wins tiebreak
                             bestTime = t; bestNx = edge.normalX; bestNy = edge.normalY
                             bestBrick = brick; bestIsBaseline = false; bestIsCorner = false; bestIsWall = false
                         }
