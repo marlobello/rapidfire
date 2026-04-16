@@ -38,8 +38,10 @@ class CollisionDetector(
 ) {
     companion object {
         private const val EPSILON = 0.0001f
-        private const val NUDGE = 0.01f
+        private const val NUDGE = 0.15f
         private const val MAX_BOUNCES = 10
+        /** When edge and corner hit times differ by less than this, prefer the edge. */
+        private const val TIEBREAK_TOLERANCE = 0.0005f
     }
 
     fun updateDimensions(
@@ -142,13 +144,22 @@ class CollisionDetector(
                 if (brick.isDestroyed) continue
                 val rect = getBrickRect(row, col)
 
-                // Edges
+                // Edges (inset by cornerR so edges don't overlap corner zones)
                 val edges = BrickShapeGeometry.getEdges(brick.shape, rect)
                 for (edge in edges) {
-                    val t = sweepCircleEdge(ball.x, ball.y, ball.vx, ball.vy, r, edge)
-                    if (t > EPSILON && t < bestTime && t <= remainingTime) {
-                        bestTime = t; bestNx = edge.normalX; bestNy = edge.normalY
-                        bestBrick = brick; bestIsBaseline = false; bestIsCorner = false; bestIsWall = false
+                    val t = sweepCircleEdge(ball.x, ball.y, ball.vx, ball.vy, r, edge, cornerR)
+                    if (t > EPSILON && t <= remainingTime) {
+                        // Edge hits win ties: prefer edge if times are within tolerance
+                        val dominated = t > bestTime + TIEBREAK_TOLERANCE
+                        val tie = t < bestTime + TIEBREAK_TOLERANCE && !bestIsCorner
+                        if (!dominated && !tie) {
+                            bestTime = t; bestNx = edge.normalX; bestNy = edge.normalY
+                            bestBrick = brick; bestIsBaseline = false; bestIsCorner = false; bestIsWall = false
+                        } else if (!dominated && bestIsCorner) {
+                            // Edge wins the tiebreak over a corner hit
+                            bestTime = t; bestNx = edge.normalX; bestNy = edge.normalY
+                            bestBrick = brick; bestIsBaseline = false; bestIsCorner = false; bestIsWall = false
+                        }
                     }
                 }
 
@@ -156,7 +167,7 @@ class CollisionDetector(
                 val corners = BrickShapeGeometry.getCorners(brick.shape, rect)
                 for ((cx, cy) in corners) {
                     val t = sweepCirclePoint(ball.x, ball.y, ball.vx, ball.vy, r + cornerR, cx, cy)
-                    if (t > EPSILON && t < bestTime && t <= remainingTime) {
+                    if (t > EPSILON && t < bestTime - TIEBREAK_TOLERANCE && t <= remainingTime) {
                         bestTime = t; bestBrick = brick; bestIsBaseline = false
                         bestIsCorner = true; bestCornerX = cx; bestCornerY = cy; bestIsWall = false
                     }
@@ -240,12 +251,13 @@ class CollisionDetector(
     }
 
     /**
-     * Swept circle vs line segment (edge).
+     * Swept circle vs line segment (edge), with endpoints inset by [cornerR]
+     * so the edge doesn't extend into the rounded corner zones.
      * Returns time of first contact, or Float.MAX_VALUE if no hit.
      */
     private fun sweepCircleEdge(
         px: Float, py: Float, vx: Float, vy: Float,
-        radius: Float, edge: Edge
+        radius: Float, edge: Edge, cornerR: Float = 0f
     ): Float {
         val nx = edge.normalX
         val ny = edge.normalY
@@ -265,14 +277,17 @@ class CollisionDetector(
         val contactX = px + vx * t - radius * nx
         val contactY = py + vy * t - radius * ny
 
-        // Check if contact point is within segment bounds
+        // Check if contact point is within segment bounds, inset by cornerR
         val edgeDx = edge.x2 - edge.x1
         val edgeDy = edge.y2 - edge.y1
         val edgeLenSq = edgeDx * edgeDx + edgeDy * edgeDy
         if (edgeLenSq < EPSILON) return Float.MAX_VALUE
 
+        val edgeLen = sqrt(edgeLenSq)
         val s = ((contactX - edge.x1) * edgeDx + (contactY - edge.y1) * edgeDy) / edgeLenSq
-        if (s < 0f || s > 1f) return Float.MAX_VALUE
+        // Inset range: exclude cornerR-sized zones at both endpoints
+        val inset = cornerR / edgeLen
+        if (s < inset || s > 1f - inset) return Float.MAX_VALUE
 
         return t
     }

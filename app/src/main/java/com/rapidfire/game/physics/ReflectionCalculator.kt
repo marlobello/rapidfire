@@ -20,6 +20,7 @@ object ReflectionCalculator {
 
     /**
      * Reflect off a corner point. Normal is from the corner center to the ball center.
+     * If the ball center is too close to the corner, falls back to reversing velocity.
      */
     fun reflectOffCorner(
         vx: Float, vy: Float,
@@ -29,7 +30,11 @@ object ReflectionCalculator {
         val dx = ballX - cornerX
         val dy = ballY - cornerY
         val dist = sqrt(dx * dx + dy * dy)
-        if (dist < 0.001f) return vx to vy
+        if (dist < 0.001f) {
+            // Degenerate case: ball center is on the corner point.
+            // Reverse the velocity to push the ball away reliably.
+            return -vx to -vy
+        }
         val nx = dx / dist
         val ny = dy / dist
         return reflect(vx, vy, nx, ny)
