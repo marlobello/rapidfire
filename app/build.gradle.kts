@@ -11,8 +11,8 @@ android {
         applicationId = "com.rapidfire.game"
         minSdk = 31
         targetSdk = 36
-        versionCode = 17
-        versionName = "1.2.7"
+        versionCode = 18
+        versionName = "1.2.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,6 +36,10 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+    }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 }
 

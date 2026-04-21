@@ -18,6 +18,16 @@ data class Edge(val x1: Float, val y1: Float, val x2: Float, val y2: Float) {
     }
 }
 
+/**
+ * Identifies which corner of a brick's bounding cell rectangle a vertex is at.
+ * NULL means the vertex is not at a cell corner (none of the current shapes use this,
+ * but we keep the option open).
+ */
+enum class CellCorner { TL, TR, BL, BR }
+
+/** A brick vertex tagged with its cell-corner identity. */
+data class CornerInfo(val cellCorner: CellCorner?, val x: Float, val y: Float)
+
 object BrickShapeGeometry {
 
     /** Get the edges of a brick shape within the given cell rect. Normals point outward. */
@@ -65,19 +75,59 @@ object BrickShapeGeometry {
         }
     }
 
-    /** Get the corner points of a brick shape within the given cell rect. */
-    fun getCorners(shape: BrickShape, rect: RectF): List<Pair<Float, Float>> {
+    /** Get the corner vertices of a brick shape, tagged with cell-corner identity. */
+    fun getCornerInfos(shape: BrickShape, rect: RectF): List<CornerInfo> {
         val l = rect.left
         val t = rect.top
         val r = rect.right
         val b = rect.bottom
 
         return when (shape) {
-            BrickShape.SQUARE -> listOf(l to t, r to t, r to b, l to b)
-            BrickShape.TRIANGLE_TL -> listOf(l to t, r to t, l to b)
-            BrickShape.TRIANGLE_TR -> listOf(l to t, r to t, r to b)
-            BrickShape.TRIANGLE_BL -> listOf(l to t, l to b, r to b)
-            BrickShape.TRIANGLE_BR -> listOf(r to t, l to b, r to b)
+            BrickShape.SQUARE -> listOf(
+                CornerInfo(CellCorner.TL, l, t),
+                CornerInfo(CellCorner.TR, r, t),
+                CornerInfo(CellCorner.BR, r, b),
+                CornerInfo(CellCorner.BL, l, b),
+            )
+            BrickShape.TRIANGLE_TL -> listOf(
+                CornerInfo(CellCorner.TL, l, t),
+                CornerInfo(CellCorner.TR, r, t),
+                CornerInfo(CellCorner.BL, l, b),
+            )
+            BrickShape.TRIANGLE_TR -> listOf(
+                CornerInfo(CellCorner.TL, l, t),
+                CornerInfo(CellCorner.TR, r, t),
+                CornerInfo(CellCorner.BR, r, b),
+            )
+            BrickShape.TRIANGLE_BL -> listOf(
+                CornerInfo(CellCorner.TL, l, t),
+                CornerInfo(CellCorner.BL, l, b),
+                CornerInfo(CellCorner.BR, r, b),
+            )
+            BrickShape.TRIANGLE_BR -> listOf(
+                CornerInfo(CellCorner.TR, r, t),
+                CornerInfo(CellCorner.BL, l, b),
+                CornerInfo(CellCorner.BR, r, b),
+            )
+        }
+    }
+
+    /** Backwards-compatible accessor returning just (x, y) pairs. */
+    fun getCorners(shape: BrickShape, rect: RectF): List<Pair<Float, Float>> =
+        getCornerInfos(shape, rect).map { it.x to it.y }
+
+    /**
+     * True if the brick's body includes the given cell corner of its bounding rect.
+     * Used to decide whether two adjacent bricks meet at a shared corner (which would
+     * make that corner interior to the brick union and therefore non-collidable).
+     */
+    fun shapeIncludesCellCorner(shape: BrickShape, cellCorner: CellCorner): Boolean {
+        return when (shape) {
+            BrickShape.SQUARE -> true
+            BrickShape.TRIANGLE_TL -> cellCorner != CellCorner.BR
+            BrickShape.TRIANGLE_TR -> cellCorner != CellCorner.BL
+            BrickShape.TRIANGLE_BL -> cellCorner != CellCorner.TR
+            BrickShape.TRIANGLE_BR -> cellCorner != CellCorner.TL
         }
     }
 

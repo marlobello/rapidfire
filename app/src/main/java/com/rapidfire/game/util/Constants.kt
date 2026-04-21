@@ -9,7 +9,6 @@ object Constants {
     // Physics
     const val BALL_RADIUS = 16f
     const val BALL_SPEED = 1200f // pixels per second
-    const val CORNER_RADIUS = 3f // small radius at brick corners
     const val FIRE_DELAY_MS = 80L // delay between successive ball firings
 
     // Cannon — doubled from previous

@@ -26,6 +26,24 @@ data class CcdResult(
     val hadWallBounce: Boolean
 )
 
+/**
+ * One contact found during the swept search. May be from an edge, a corner, or a wall.
+ * Multiple contacts that occur at (essentially) the same time-of-impact are combined
+ * by averaging their normals so corner-on-corner / edge-on-edge ties produce a sensible
+ * combined reflection.
+ */
+private data class Contact(
+    val nx: Float,
+    val ny: Float,
+    val brick: Brick?,
+    val isWall: Boolean,
+    // For corner contacts the normal must be re-computed at the actual impact position
+    // (ball center moves to bestTime), not at the start-of-step position.
+    val isCorner: Boolean,
+    val cornerX: Float,
+    val cornerY: Float
+)
+
 class CollisionDetector(
     private var leftBound: Float = 0f,
     private var rightBound: Float = 0f,
@@ -38,9 +56,11 @@ class CollisionDetector(
 ) {
     companion object {
         private const val EPSILON = 0.0001f
+        // Treat contacts within this absolute time delta as simultaneous.
+        private const val TIME_TIE_EPSILON = 1e-5f
         private const val NUDGE = 0.05f
-        private const val MAX_BOUNCES = 10
-        private const val MAX_DEPENETRATION_ITERS = 4
+        private const val MAX_BOUNCES = 16
+        private const val MAX_DEPENETRATION_ITERS = 8
         private const val DEPENETRATION_SLOP = 0.1f
     }
 
@@ -65,7 +85,59 @@ class CollisionDetector(
         val spacing = Constants.BRICK_SPACING
         val x = offsetX + col * cellWidth + spacing / 2
         val y = offsetY + (Constants.GRID_ROWS - 1 - row) * cellHeight + spacing / 2
-        return RectF(x, y, x + cellWidth - spacing, y + cellHeight - spacing)
+        // Set fields explicitly (Android RectF unit-test stubs don't run the
+        // 4-arg constructor body, leaving the fields at 0).
+        return RectF().apply {
+            left = x
+            top = y
+            right = x + cellWidth - spacing
+            bottom = y + cellHeight - spacing
+        }
+    }
+
+    /**
+     * A corner of a brick is "covered" if any of the (up to 3) neighbouring cells that
+     * share that grid corner has a non-destroyed brick whose body extends to the same
+     * cell-corner. With BRICK_SPACING (4 px) << BALL_RADIUS (16 px) the ball can't fit
+     * through the gap, so a covered corner is interior to the brick union and must NOT
+     * generate a collision (otherwise it acts as a phantom bumper that deflects balls
+     * gliding past — the cause of the user-visible "weird bounces near corners").
+     */
+    private fun isCornerCovered(
+        brickRow: Int, brickCol: Int,
+        cellCorner: CellCorner,
+        board: GameBoard
+    ): Boolean {
+        val (n1, n2, n3) = when (cellCorner) {
+            CellCorner.TL -> Triple(
+                Triple(brickRow + 1, brickCol - 1, CellCorner.BR),
+                Triple(brickRow + 1, brickCol,     CellCorner.BL),
+                Triple(brickRow,     brickCol - 1, CellCorner.TR),
+            )
+            CellCorner.TR -> Triple(
+                Triple(brickRow + 1, brickCol + 1, CellCorner.BL),
+                Triple(brickRow + 1, brickCol,     CellCorner.BR),
+                Triple(brickRow,     brickCol + 1, CellCorner.TL),
+            )
+            CellCorner.BL -> Triple(
+                Triple(brickRow - 1, brickCol - 1, CellCorner.TR),
+                Triple(brickRow - 1, brickCol,     CellCorner.TL),
+                Triple(brickRow,     brickCol - 1, CellCorner.BR),
+            )
+            CellCorner.BR -> Triple(
+                Triple(brickRow - 1, brickCol + 1, CellCorner.TL),
+                Triple(brickRow - 1, brickCol,     CellCorner.TR),
+                Triple(brickRow,     brickCol + 1, CellCorner.BL),
+            )
+        }
+        for ((nr, nc, nCorner) in listOf(n1, n2, n3)) {
+            val nb = board.getBrick(nr, nc) ?: continue
+            if (nb.isDestroyed) continue
+            if (BrickShapeGeometry.shapeIncludesCellCorner(nb.shape, nCorner)) {
+                return true
+            }
+        }
+        return false
     }
 
     /**
@@ -74,7 +146,6 @@ class CollisionDetector(
      */
     fun advanceBall(ball: Ball, dt: Float, board: GameBoard): CcdResult {
         val r = Constants.BALL_RADIUS
-        val cornerR = Constants.CORNER_RADIUS
         var remainingTime = dt
         val hitBricks = mutableListOf<BrickHit>()
         var bounceCount = 0
@@ -85,94 +156,90 @@ class CollisionDetector(
             if (ball.x < leftBound + r) { ball.x = leftBound + r; if (ball.vx < 0f) ball.vx = -ball.vx }
             if (ball.x > rightBound - r) { ball.x = rightBound - r; if (ball.vx > 0f) ball.vx = -ball.vx }
             if (ball.y < topBound + r) { ball.y = topBound + r; if (ball.vy < 0f) ball.vy = -ball.vy }
-            // Safety: despawn if ball is past the baseline
             if (ball.y + r >= bottomBound) {
                 return CcdResult(hitBricks, despawned = true, hadWallBounce)
             }
 
             // Depenetration: push ball out of any overlapping brick geometry
-            depenetrate(ball, r, cornerR, board)
+            depenetrate(ball, r, board)
 
             var bestTime = Float.MAX_VALUE
-            var bestNx = 0f
-            var bestNy = 0f
-            var bestBrick: Brick? = null
-            var bestIsBaseline = false
-            var bestIsCorner = false
-            var bestCornerX = 0f
-            var bestCornerY = 0f
-            var bestIsWall = false
+            val contacts = mutableListOf<Contact>()
 
             // --- Wall collisions (1D ray casts) ---
-            // Left wall
             if (ball.vx < 0f) {
                 val t = (leftBound + r - ball.x) / ball.vx
-                if (t > EPSILON && t < bestTime && t <= remainingTime) {
-                    bestTime = t; bestNx = 1f; bestNy = 0f
-                    bestBrick = null; bestIsBaseline = false; bestIsCorner = false; bestIsWall = true
+                if (t > EPSILON && t <= remainingTime) {
+                    bestTime = registerContact(t, bestTime, contacts,
+                        Contact(1f, 0f, null, true, false, 0f, 0f))
                 }
             }
-            // Right wall
             if (ball.vx > 0f) {
                 val t = (rightBound - r - ball.x) / ball.vx
-                if (t > EPSILON && t < bestTime && t <= remainingTime) {
-                    bestTime = t; bestNx = -1f; bestNy = 0f
-                    bestBrick = null; bestIsBaseline = false; bestIsCorner = false; bestIsWall = true
+                if (t > EPSILON && t <= remainingTime) {
+                    bestTime = registerContact(t, bestTime, contacts,
+                        Contact(-1f, 0f, null, true, false, 0f, 0f))
                 }
             }
-            // Top wall
             if (ball.vy < 0f) {
                 val t = (topBound + r - ball.y) / ball.vy
-                if (t > EPSILON && t < bestTime && t <= remainingTime) {
-                    bestTime = t; bestNx = 0f; bestNy = 1f
-                    bestBrick = null; bestIsBaseline = false; bestIsCorner = false; bestIsWall = true
+                if (t > EPSILON && t <= remainingTime) {
+                    bestTime = registerContact(t, bestTime, contacts,
+                        Contact(0f, 1f, null, true, false, 0f, 0f))
                 }
             }
-            // Baseline (despawn)
+            // Baseline (despawn) — track separately, can't combine with normal contacts
+            var baselineTime = Float.MAX_VALUE
             if (ball.vy > 0f) {
                 val t = (bottomBound - r - ball.y) / ball.vy
-                if (t > EPSILON && t < bestTime && t <= remainingTime) {
-                    bestTime = t; bestIsBaseline = true
-                    bestBrick = null; bestIsCorner = false; bestIsWall = false
-                }
+                if (t > EPSILON && t <= remainingTime) baselineTime = t
             }
 
             // --- Brick collisions (swept circle vs edges & corners) ---
             val endX = ball.x + ball.vx * remainingTime
             val endY = ball.y + ball.vy * remainingTime
-            val cells = getCellsAlongPath(ball.x, ball.y, endX, endY, r + cornerR)
+            val cells = getCellsAlongPath(ball.x, ball.y, endX, endY, r)
 
             for ((row, col) in cells) {
                 val brick = board.getBrick(row, col) ?: continue
                 if (brick.isDestroyed) continue
                 val rect = getBrickRect(row, col)
 
-                // Edges (full length — corners only fire for endpoint misses)
                 val edges = BrickShapeGeometry.getEdges(brick.shape, rect)
                 for (edge in edges) {
                     val t = sweepCircleEdge(ball.x, ball.y, ball.vx, ball.vy, r, edge)
-                    if (t > EPSILON && t < bestTime && t <= remainingTime) {
-                        bestTime = t; bestNx = edge.normalX; bestNy = edge.normalY
-                        bestBrick = brick; bestIsBaseline = false; bestIsCorner = false; bestIsWall = false
+                    if (t > EPSILON && t <= remainingTime && t <= bestTime + TIME_TIE_EPSILON) {
+                        bestTime = registerContact(t, bestTime, contacts,
+                            Contact(edge.normalX, edge.normalY, brick, false, false, 0f, 0f))
                     }
                 }
 
-                // Corners — only check if no edge of this brick already won at an
-                // earlier or equal time (corners handle the endpoint gaps)
-                val corners = BrickShapeGeometry.getCorners(brick.shape, rect)
-                for ((cx, cy) in corners) {
-                    val t = sweepCirclePoint(ball.x, ball.y, ball.vx, ball.vy, r + cornerR, cx, cy)
-                    if (t > EPSILON && t < bestTime && t <= remainingTime) {
-                        bestTime = t; bestBrick = brick; bestIsBaseline = false
-                        bestIsCorner = true; bestCornerX = cx; bestCornerY = cy; bestIsWall = false
+                val corners = BrickShapeGeometry.getCornerInfos(brick.shape, rect)
+                for (cInfo in corners) {
+                    // Skip corners that are interior to the brick union (covered by neighbours).
+                    val cc = cInfo.cellCorner
+                    if (cc != null && isCornerCovered(row, col, cc, board)) continue
+
+                    val t = sweepCirclePoint(ball.x, ball.y, ball.vx, ball.vy, r, cInfo.x, cInfo.y)
+                    if (t > EPSILON && t <= remainingTime && t <= bestTime + TIME_TIE_EPSILON) {
+                        bestTime = registerContact(t, bestTime, contacts,
+                            Contact(0f, 0f, brick, false, true, cInfo.x, cInfo.y))
                     }
                 }
             }
 
+            // Baseline beats brick contacts only if it's strictly earlier.
+            if (baselineTime < bestTime - TIME_TIE_EPSILON) {
+                ball.x += ball.vx * baselineTime
+                ball.y += ball.vy * baselineTime
+                return CcdResult(hitBricks, despawned = true, hadWallBounce)
+            }
+
             // --- No collision found: move to end position ---
-            if (bestTime == Float.MAX_VALUE) {
+            if (contacts.isEmpty()) {
                 ball.x += ball.vx * remainingTime
                 ball.y += ball.vy * remainingTime
+                remainingTime = 0f
                 break
             }
 
@@ -181,63 +248,84 @@ class CollisionDetector(
             ball.y += ball.vy * bestTime
             remainingTime -= bestTime
 
-            // Despawn
-            if (bestIsBaseline) {
-                return CcdResult(hitBricks, despawned = true, hadWallBounce)
-            }
-
-            // Track wall bounces for sound
-            if (bestIsWall) hadWallBounce = true
-
-            // Reflect and nudge away from surface
-            if (bestIsCorner) {
-                val (nvx, nvy) = ReflectionCalculator.reflectOffCorner(
-                    ball.vx, ball.vy, ball.x, ball.y, bestCornerX, bestCornerY
-                )
-                ball.vx = nvx; ball.vy = nvy
-                val dx = ball.x - bestCornerX
-                val dy = ball.y - bestCornerY
-                val dist = sqrt(dx * dx + dy * dy)
-                if (dist > EPSILON) {
-                    ball.x += (dx / dist) * NUDGE
-                    ball.y += (dy / dist) * NUDGE
+            // Compute combined surface normal from all simultaneous contacts.
+            var sumNx = 0f
+            var sumNy = 0f
+            var anyWall = false
+            for (c in contacts) {
+                if (c.isWall) anyWall = true
+                val (cnx, cny) = if (c.isCorner) {
+                    val dx = ball.x - c.cornerX
+                    val dy = ball.y - c.cornerY
+                    val d = sqrt(dx * dx + dy * dy)
+                    if (d > EPSILON) (dx / d) to (dy / d) else 0f to 0f
+                } else {
+                    c.nx to c.ny
                 }
+                sumNx += cnx
+                sumNy += cny
+            }
+            val sumLen = sqrt(sumNx * sumNx + sumNy * sumNy)
+            val nx: Float
+            val ny: Float
+            if (sumLen > EPSILON) {
+                nx = sumNx / sumLen
+                ny = sumNy / sumLen
             } else {
-                val (nvx, nvy) = ReflectionCalculator.reflect(
-                    ball.vx, ball.vy, bestNx, bestNy
-                )
-                ball.vx = nvx; ball.vy = nvy
-                ball.x += bestNx * NUDGE
-                ball.y += bestNy * NUDGE
+                // Degenerate (opposing normals canceled): reverse the velocity vector
+                // as a guaranteed escape direction.
+                val vLen = sqrt(ball.vx * ball.vx + ball.vy * ball.vy)
+                if (vLen > EPSILON) {
+                    nx = -ball.vx / vLen
+                    ny = -ball.vy / vLen
+                } else {
+                    nx = 0f
+                    ny = -1f
+                }
             }
 
-            // Record and process brick hit
-            if (bestBrick != null) {
-                val rect = getBrickRect(bestBrick.row, bestBrick.col)
-                val color = bestBrick.color
-                bestBrick.hit()
-                val destroyed = bestBrick.isDestroyed
+            if (anyWall) hadWallBounce = true
+
+            val (nvx, nvy) = ReflectionCalculator.reflect(ball.vx, ball.vy, nx, ny)
+            ball.vx = nvx
+            ball.vy = nvy
+            ball.x += nx * NUDGE
+            ball.y += ny * NUDGE
+
+            // Record and process every brick hit at this contact (multiple bricks can be
+            // hit simultaneously, e.g. at the meeting point of two adjacent bricks).
+            val seenBricks = HashSet<Brick>()
+            for (c in contacts) {
+                val b = c.brick ?: continue
+                if (!seenBricks.add(b)) continue
+                val rect = getBrickRect(b.row, b.col)
+                val color = b.color
+                b.hit()
+                val destroyed = b.isDestroyed
                 hitBricks.add(BrickHit(
-                    brick = bestBrick,
+                    brick = b,
                     destroyed = destroyed,
-                    points = bestBrick.originalValue,
+                    points = b.originalValue,
                     centerX = rect.centerX(),
                     centerY = rect.centerY(),
                     color = color
                 ))
-                if (destroyed) {
-                    board.removeBrick(bestBrick.row, bestBrick.col)
-                }
+                if (destroyed) board.removeBrick(b.row, b.col)
             }
 
             bounceCount++
         }
 
+        // If we exited via MAX_BOUNCES with motion remaining, discard remaining motion to
+        // avoid tunneling through any brick we hadn't reflected against yet (pathological
+        // corner traps). Run a final depenetration so the ball can never end the frame
+        // inside a brick.
+        depenetrate(ball, r, board)
+
         // Final safety: ensure ball ends within play area
         if (ball.x < leftBound + r) { ball.x = leftBound + r; if (ball.vx < 0f) ball.vx = -ball.vx }
         if (ball.x > rightBound - r) { ball.x = rightBound - r; if (ball.vx > 0f) ball.vx = -ball.vx }
         if (ball.y < topBound + r) { ball.y = topBound + r; if (ball.vy < 0f) ball.vy = -ball.vy }
-        // Final safety: despawn if ball ended up past the baseline
         if (ball.y + r >= bottomBound) {
             return CcdResult(hitBricks, despawned = true, hadWallBounce)
         }
@@ -246,21 +334,37 @@ class CollisionDetector(
     }
 
     /**
+     * Add `c` to the set of simultaneous contacts. If `t` strictly precedes the previous
+     * best (by more than TIME_TIE_EPSILON), supersedes them. Returns the new bestTime.
+     */
+    private fun registerContact(
+        t: Float, bestTime: Float, contacts: MutableList<Contact>, c: Contact
+    ): Float {
+        return if (t < bestTime - TIME_TIE_EPSILON) {
+            contacts.clear()
+            contacts.add(c)
+            t
+        } else {
+            contacts.add(c)
+            min(bestTime, t)
+        }
+    }
+
+    /**
      * Push the ball out of any overlapping brick geometry.
      * Finds the closest point on any nearby brick boundary and pushes
      * the ball along the separation normal until it is no longer overlapping.
      */
-    private fun depenetrate(ball: Ball, r: Float, cornerR: Float, board: GameBoard) {
+    private fun depenetrate(ball: Ball, r: Float, board: GameBoard) {
         for (iter in 0 until MAX_DEPENETRATION_ITERS) {
             var worstPenetration = 0f
             var pushNx = 0f
             var pushNy = 0f
 
-            // Check nearby cells
-            val col0 = ((ball.x - r - cornerR - offsetX) / cellWidth).toInt().coerceIn(0, Constants.GRID_COLUMNS - 1)
-            val col1 = ((ball.x + r + cornerR - offsetX) / cellWidth).toInt().coerceIn(0, Constants.GRID_COLUMNS - 1)
-            val sRow0 = ((ball.y - r - cornerR - offsetY) / cellHeight).toInt().coerceIn(0, Constants.GRID_ROWS - 1)
-            val sRow1 = ((ball.y + r + cornerR - offsetY) / cellHeight).toInt().coerceIn(0, Constants.GRID_ROWS - 1)
+            val col0 = ((ball.x - r - offsetX) / cellWidth).toInt().coerceIn(0, Constants.GRID_COLUMNS - 1)
+            val col1 = ((ball.x + r - offsetX) / cellWidth).toInt().coerceIn(0, Constants.GRID_COLUMNS - 1)
+            val sRow0 = ((ball.y - r - offsetY) / cellHeight).toInt().coerceIn(0, Constants.GRID_ROWS - 1)
+            val sRow1 = ((ball.y + r - offsetY) / cellHeight).toInt().coerceIn(0, Constants.GRID_ROWS - 1)
             val gRow0 = (Constants.GRID_ROWS - 1 - sRow1).coerceIn(0, Constants.GRID_ROWS - 1)
             val gRow1 = (Constants.GRID_ROWS - 1 - sRow0).coerceIn(0, Constants.GRID_ROWS - 1)
 
@@ -270,8 +374,41 @@ class CollisionDetector(
                     if (brick.isDestroyed) continue
                     val rect = getBrickRect(row, col)
 
-                    // Check edges
                     val edges = BrickShapeGeometry.getEdges(brick.shape, rect)
+
+                    // First, detect "ball center fully inside brick polygon" — happens when
+                    // the ball ends up further than r from every edge (deep penetration).
+                    // For a convex polygon, ball is inside iff signed distance to every
+                    // edge line is <= 0. Push out via the edge with the LARGEST (least
+                    // negative) signed distance (the closest wall).
+                    var allInside = true
+                    var maxSigned = -Float.MAX_VALUE
+                    var maxEdgeNx = 0f
+                    var maxEdgeNy = 0f
+                    for (edge in edges) {
+                        val signed = (ball.x - edge.x1) * edge.normalX +
+                                     (ball.y - edge.y1) * edge.normalY
+                        if (signed > 0f) { allInside = false; break }
+                        if (signed > maxSigned) {
+                            maxSigned = signed
+                            maxEdgeNx = edge.normalX
+                            maxEdgeNy = edge.normalY
+                        }
+                    }
+                    if (allInside && edges.isNotEmpty()) {
+                        // Penetration is r minus signed distance (signed is <= 0).
+                        val penetration = r - maxSigned
+                        if (penetration > worstPenetration) {
+                            worstPenetration = penetration
+                            pushNx = maxEdgeNx
+                            pushNy = maxEdgeNy
+                        }
+                        continue  // skip the standard edge/corner penetration checks
+                    }
+
+                    // Standard case: ball center is outside the polygon. Edge contact only
+                    // counts when the perpendicular foot lies on the segment AND the ball
+                    // is within r of the edge.
                     for (edge in edges) {
                         val (dist, nx, ny) = closestPointOnEdge(ball.x, ball.y, edge)
                         val penetration = r - dist
@@ -282,13 +419,14 @@ class CollisionDetector(
                         }
                     }
 
-                    // Check corners
-                    val corners = BrickShapeGeometry.getCorners(brick.shape, rect)
-                    for ((cx, cy) in corners) {
-                        val dx = ball.x - cx
-                        val dy = ball.y - cy
+                    val corners = BrickShapeGeometry.getCornerInfos(brick.shape, rect)
+                    for (cInfo in corners) {
+                        val cc = cInfo.cellCorner
+                        if (cc != null && isCornerCovered(row, col, cc, board)) continue
+                        val dx = ball.x - cInfo.x
+                        val dy = ball.y - cInfo.y
                         val dist = sqrt(dx * dx + dy * dy)
-                        val penetration = (r + cornerR) - dist
+                        val penetration = r - dist
                         if (penetration > worstPenetration && dist > EPSILON) {
                             worstPenetration = penetration
                             pushNx = dx / dist
@@ -300,7 +438,6 @@ class CollisionDetector(
 
             if (worstPenetration <= EPSILON) break
 
-            // Push ball out
             val pushDist = worstPenetration + DEPENETRATION_SLOP
             ball.x += pushNx * pushDist
             ball.y += pushNy * pushDist
@@ -322,7 +459,6 @@ class CollisionDetector(
             return if (d > EPSILON) Triple(d, dx / d, dy / d) else Triple(0f, 0f, 0f)
         }
 
-        // Project point onto edge line, clamped to segment
         val t = ((px - edge.x1) * edgeDx + (py - edge.y1) * edgeDy) / edgeLenSq
         val clamped = t.coerceIn(0f, 1f)
         val closestX = edge.x1 + clamped * edgeDx
@@ -333,7 +469,6 @@ class CollisionDetector(
         return if (dist > EPSILON) {
             Triple(dist, dx / dist, dy / dist)
         } else {
-            // Ball center is on the edge — use edge normal
             Triple(0f, edge.normalX, edge.normalY)
         }
     }
@@ -349,22 +484,17 @@ class CollisionDetector(
         val nx = edge.normalX
         val ny = edge.normalY
 
-        // Ball must be moving toward the edge
         val vDotN = vx * nx + vy * ny
         if (vDotN >= 0f) return Float.MAX_VALUE
 
-        // Signed distance from ball center to the edge line
         val signedDist = (px - edge.x1) * nx + (py - edge.y1) * ny
 
-        // Time for ball center to reach distance 'radius' from the edge line
         val t = (radius - signedDist) / vDotN
         if (t < 0f) return Float.MAX_VALUE
 
-        // Contact point on the original edge line
         val contactX = px + vx * t - radius * nx
         val contactY = py + vy * t - radius * ny
 
-        // Check if contact point is within segment bounds
         val edgeDx = edge.x2 - edge.x1
         val edgeDy = edge.y2 - edge.y1
         val edgeLenSq = edgeDx * edgeDx + edgeDy * edgeDy
@@ -384,7 +514,6 @@ class CollisionDetector(
         px: Float, py: Float, vx: Float, vy: Float,
         radius: Float, cx: Float, cy: Float
     ): Float {
-        // Solve |P + t*V - C|^2 = radius^2
         val dx = px - cx
         val dy = py - cy
         val a = vx * vx + vy * vy
