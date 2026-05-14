@@ -39,3 +39,5 @@ keystore.properties
 # OS files
 Thumbs.db
 .DS_Store
+
+sim/

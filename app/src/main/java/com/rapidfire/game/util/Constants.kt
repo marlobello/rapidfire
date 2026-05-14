@@ -11,6 +11,21 @@ object Constants {
     const val BALL_SPEED = 1200f // pixels per second
     const val FIRE_DELAY_MS = 80L // delay between successive ball firings
 
+    // Minimum |vy|/|v| ratio enforced after every reflection. Prevents balls
+    // converging onto a near-horizontal trajectory (looks like "rolling" and
+    // can produce stable orbits between left/right walls that never reach
+    // the baseline). 0.15 ≈ 8.6° from horizontal.
+    const val MIN_VERTICAL_VELOCITY_RATIO = 0.15f
+
+    // Cap a single CCD substep at one normal-frame's worth of motion. In
+    // turbo mode the effective dt is 4× normal, so we run 4 sub-frames.
+    // Keeps multi-brick collision resolution stable.
+    const val MAX_PHYSICS_SUBSTEP_SECS = 1f / 60f
+
+    // Hard ceiling on how long a single ball may stay alive. Failsafe against
+    // pathological stable orbits in high-HP boss rounds (no infinite balls).
+    const val MAX_BALL_LIFETIME_SECS = 30f
+
     // Cannon — doubled from previous
     const val MIN_AIM_ANGLE_DEG = 15f // minimum angle from horizon (both sides)
     const val MAX_AIM_ANGLE_DEG = 165f // 180 - MIN = max from left horizon

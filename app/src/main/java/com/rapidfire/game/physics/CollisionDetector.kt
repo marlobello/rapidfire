@@ -142,9 +142,31 @@ class CollisionDetector(
 
     /**
      * Advance a ball through one frame using Continuous Collision Detection.
-     * Finds the exact first collision along the ball's path, reflects, and repeats.
+     * Splits the frame into sub-steps no larger than MAX_PHYSICS_SUBSTEP_SECS so
+     * that turbo (effective dt = 4×) runs as 4 sub-frames — this keeps multi-brick
+     * collision resolution stable and prevents tunneling at high speed.
      */
     fun advanceBall(ball: Ball, dt: Float, board: GameBoard): CcdResult {
+        val maxStep = Constants.MAX_PHYSICS_SUBSTEP_SECS
+        var remaining = dt
+        val allHits = mutableListOf<BrickHit>()
+        var anyDespawned = false
+        var anyWallBounce = false
+        while (remaining > EPSILON && !anyDespawned) {
+            val step = if (remaining > maxStep) maxStep else remaining
+            val r = advanceBallStep(ball, step, board)
+            allHits.addAll(r.hitBricks)
+            if (r.hadWallBounce) anyWallBounce = true
+            if (r.despawned) {
+                anyDespawned = true
+                break
+            }
+            remaining -= step
+        }
+        return CcdResult(allHits, despawned = anyDespawned, hadWallBounce = anyWallBounce)
+    }
+
+    private fun advanceBallStep(ball: Ball, dt: Float, board: GameBoard): CcdResult {
         val r = Constants.BALL_RADIUS
         var remainingTime = dt
         val hitBricks = mutableListOf<BrickHit>()
@@ -153,9 +175,30 @@ class CollisionDetector(
 
         while (remainingTime > EPSILON && bounceCount < MAX_BOUNCES) {
             // Safety: correct any out-of-bounds position (nudge overshoot near walls)
-            if (ball.x < leftBound + r) { ball.x = leftBound + r; if (ball.vx < 0f) ball.vx = -ball.vx }
-            if (ball.x > rightBound - r) { ball.x = rightBound - r; if (ball.vx > 0f) ball.vx = -ball.vx }
-            if (ball.y < topBound + r) { ball.y = topBound + r; if (ball.vy < 0f) ball.vy = -ball.vy }
+            if (ball.x < leftBound + r) {
+                ball.x = leftBound + r
+                if (ball.vx < 0f) {
+                    ball.vx = -ball.vx
+                    val (cvx, cvy) = ReflectionCalculator.enforceMinVerticalVelocity(ball.vx, ball.vy)
+                    ball.vx = cvx; ball.vy = cvy
+                }
+            }
+            if (ball.x > rightBound - r) {
+                ball.x = rightBound - r
+                if (ball.vx > 0f) {
+                    ball.vx = -ball.vx
+                    val (cvx, cvy) = ReflectionCalculator.enforceMinVerticalVelocity(ball.vx, ball.vy)
+                    ball.vx = cvx; ball.vy = cvy
+                }
+            }
+            if (ball.y < topBound + r) {
+                ball.y = topBound + r
+                if (ball.vy < 0f) {
+                    ball.vy = -ball.vy
+                    val (cvx, cvy) = ReflectionCalculator.enforceMinVerticalVelocity(ball.vx, ball.vy)
+                    ball.vx = cvx; ball.vy = cvy
+                }
+            }
             if (ball.y + r >= bottomBound) {
                 return CcdResult(hitBricks, despawned = true, hadWallBounce)
             }
@@ -287,8 +330,9 @@ class CollisionDetector(
             if (anyWall) hadWallBounce = true
 
             val (nvx, nvy) = ReflectionCalculator.reflect(ball.vx, ball.vy, nx, ny)
-            ball.vx = nvx
-            ball.vy = nvy
+            val (cvx, cvy) = ReflectionCalculator.enforceMinVerticalVelocity(nvx, nvy)
+            ball.vx = cvx
+            ball.vy = cvy
             ball.x += nx * NUDGE
             ball.y += ny * NUDGE
 
@@ -323,9 +367,30 @@ class CollisionDetector(
         depenetrate(ball, r, board)
 
         // Final safety: ensure ball ends within play area
-        if (ball.x < leftBound + r) { ball.x = leftBound + r; if (ball.vx < 0f) ball.vx = -ball.vx }
-        if (ball.x > rightBound - r) { ball.x = rightBound - r; if (ball.vx > 0f) ball.vx = -ball.vx }
-        if (ball.y < topBound + r) { ball.y = topBound + r; if (ball.vy < 0f) ball.vy = -ball.vy }
+        if (ball.x < leftBound + r) {
+            ball.x = leftBound + r
+            if (ball.vx < 0f) {
+                ball.vx = -ball.vx
+                val (cvx, cvy) = ReflectionCalculator.enforceMinVerticalVelocity(ball.vx, ball.vy)
+                ball.vx = cvx; ball.vy = cvy
+            }
+        }
+        if (ball.x > rightBound - r) {
+            ball.x = rightBound - r
+            if (ball.vx > 0f) {
+                ball.vx = -ball.vx
+                val (cvx, cvy) = ReflectionCalculator.enforceMinVerticalVelocity(ball.vx, ball.vy)
+                ball.vx = cvx; ball.vy = cvy
+            }
+        }
+        if (ball.y < topBound + r) {
+            ball.y = topBound + r
+            if (ball.vy < 0f) {
+                ball.vy = -ball.vy
+                val (cvx, cvy) = ReflectionCalculator.enforceMinVerticalVelocity(ball.vx, ball.vy)
+                ball.vx = cvx; ball.vy = cvy
+            }
+        }
         if (ball.y + r >= bottomBound) {
             return CcdResult(hitBricks, despawned = true, hadWallBounce)
         }

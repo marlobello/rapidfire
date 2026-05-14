@@ -1,5 +1,8 @@
 package com.rapidfire.game.physics
 
+import com.rapidfire.game.util.Constants
+import kotlin.math.abs
+import kotlin.math.sign
 import kotlin.math.sqrt
 
 object ReflectionCalculator {
@@ -38,5 +41,26 @@ object ReflectionCalculator {
         val nx = dx / dist
         val ny = dy / dist
         return reflect(vx, vy, nx, ny)
+    }
+
+    /**
+     * Enforce a minimum vertical-velocity ratio (|vy|/|v|).
+     * Preserves total speed and the SIGNS of vx and vy, but rotates the velocity
+     * vector toward vertical when it falls below the threshold. Prevents the ball
+     * from converging onto a near-horizontal trajectory that looks like "rolling"
+     * and can produce stable left/right wall orbits that never reach the baseline.
+     * If vy is exactly 0, nudges it downward (positive screen-y) so balls always
+     * trend back toward the despawn line.
+     */
+    fun enforceMinVerticalVelocity(vx: Float, vy: Float): Pair<Float, Float> {
+        val speed = sqrt(vx * vx + vy * vy)
+        if (speed < 0.0001f) return vx to vy
+        val ratio = abs(vy) / speed
+        if (ratio >= Constants.MIN_VERTICAL_VELOCITY_RATIO) return vx to vy
+        val ySign = if (vy == 0f) 1f else sign(vy)
+        val xSign = if (vx == 0f) 1f else sign(vx)
+        val newVy = ySign * Constants.MIN_VERTICAL_VELOCITY_RATIO * speed
+        val newVx = xSign * sqrt(speed * speed - newVy * newVy)
+        return newVx to newVy
     }
 }

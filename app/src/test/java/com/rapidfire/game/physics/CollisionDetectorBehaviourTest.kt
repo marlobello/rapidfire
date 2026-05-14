@@ -222,7 +222,6 @@ class CollisionDetectorBehaviourTest {
             )
             detector.advanceBall(ball, dt = 1f / 60f, board = board)
 
-            // Verify the ball is not inside any (still-living) brick
             for (b in board.getAllBricks()) {
                 if (b.isDestroyed) continue
                 val rect = detector.getBrickRect(b.row, b.col)
@@ -237,6 +236,73 @@ class CollisionDetectorBehaviourTest {
                     dist >= Constants.BALL_RADIUS - 1f
                 )
             }
+        }
+    }
+
+    @Test
+    fun `reflection enforces minimum vertical velocity`() {
+        // A ball heading nearly horizontally hits a brick edge whose normal
+        // alone wouldn't restore vertical motion. enforceMinVerticalVelocity
+        // must guarantee the post-bounce ratio |vy|/|v| >= MIN_VERTICAL_VELOCITY_RATIO.
+        val board = GameBoard()
+        // Place a vertical wall on the right that the ball hits with vy nearly 0
+        place(board, 4, 5)
+        val rect = detector.getBrickRect(4, 5)
+        val ball = Ball(
+            x = rect.left - Constants.BALL_RADIUS - 5f,
+            y = (rect.top + rect.bottom) / 2f,  // horizontally aligned with brick center
+            vx = 1199f,
+            vy = -10f,                          // nearly horizontal
+        )
+        val result = detector.advanceBall(ball, dt = 1f / 60f, board = board)
+
+        assertTrue("Ball should hit the brick", result.hitBricks.isNotEmpty())
+        val speed = sqrt(ball.vx * ball.vx + ball.vy * ball.vy)
+        val ratio = abs(ball.vy) / speed
+        assertTrue(
+            "After bounce |vy|/|v| (=$ratio) must be >= MIN_VERTICAL_VELOCITY_RATIO " +
+                "(${Constants.MIN_VERTICAL_VELOCITY_RATIO})",
+            ratio >= Constants.MIN_VERTICAL_VELOCITY_RATIO - 0.001f
+        )
+        // Speed preservation
+        assertEquals("Speed preserved", 1199.04f, speed, 1f)
+    }
+
+    @Test
+    fun `turbo-speed ball through a row of bricks does not tunnel or get stuck`() {
+        // Substepping (MAX_PHYSICS_SUBSTEP_SECS) should let a turbo-speed ball
+        // (4× normal) hit a row of adjacent bricks one at a time without ending
+        // up buried inside any of them.
+        val board = GameBoard()
+        for (col in 0..6) place(board, 4, col)
+        val rect = detector.getBrickRect(4, 3)
+
+        val turboSpeed = Constants.BALL_SPEED * Constants.TURBO_SPEED_MULTIPLIER
+        val ball = Ball(
+            x = leftBound + 5f,
+            y = (rect.top + rect.bottom) / 2f,
+            vx = turboSpeed * 0.85f,
+            vy = -turboSpeed * 0.527f,  // slight upward component
+        )
+
+        // Run 60 frames at turbo dt
+        repeat(60) {
+            if (!ball.active) return@repeat
+            val r = detector.advanceBall(ball, 1f / 60f, board)
+            if (r.despawned) ball.active = false
+        }
+
+        // Ball must not be inside any surviving brick
+        for (b in board.getAllBricks()) {
+            if (b.isDestroyed) continue
+            val rc = detector.getBrickRect(b.row, b.col)
+            val nx = ball.x.coerceIn(rc.left, rc.right)
+            val ny = ball.y.coerceIn(rc.top, rc.bottom)
+            val d = sqrt((ball.x - nx) * (ball.x - nx) + (ball.y - ny) * (ball.y - ny))
+            assertTrue(
+                "Turbo ball ended inside brick (${b.row},${b.col}): d=$d",
+                d >= Constants.BALL_RADIUS - 1f
+            )
         }
     }
 }

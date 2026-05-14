@@ -65,6 +65,7 @@ class GameLoop(
             if (!ball.active) continue
 
             val result = collisionDetector.advanceBall(ball, effectiveDt, state.board)
+            ball.ageSecs += effectiveDt
 
             // Process brick hits: scoring, sound, effects
             var playedSound = false
@@ -82,8 +83,9 @@ class GameLoop(
                 soundManager?.playBounce()
             }
 
-            // Despawn
-            if (result.despawned) {
+            // Despawn (or force-despawn balls that have lived too long — failsafe
+            // against pathological orbits in high-HP boss rounds)
+            if (result.despawned || ball.ageSecs > Constants.MAX_BALL_LIFETIME_SECS) {
                 state.onBallDespawn(ball)
             }
         }
