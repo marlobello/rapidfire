@@ -22,10 +22,6 @@ object Constants {
     // Keeps multi-brick collision resolution stable.
     const val MAX_PHYSICS_SUBSTEP_SECS = 1f / 60f
 
-    // Hard ceiling on how long a single ball may stay alive. Failsafe against
-    // pathological stable orbits in high-HP boss rounds (no infinite balls).
-    const val MAX_BALL_LIFETIME_SECS = 30f
-
     // Cannon — doubled from previous
     const val MIN_AIM_ANGLE_DEG = 15f // minimum angle from horizon (both sides)
     const val MAX_AIM_ANGLE_DEG = 165f // 180 - MIN = max from left horizon
