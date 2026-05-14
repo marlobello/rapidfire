@@ -53,7 +53,7 @@ class CollisionDetector(
     private var cellHeight: Float = 0f,
     private var offsetX: Float = 0f,
     private var offsetY: Float = 0f
-) {
+) : PhysicsEngine {
     companion object {
         private const val EPSILON = 0.0001f
         // Treat contacts within this absolute time delta as simultaneous.
@@ -64,7 +64,7 @@ class CollisionDetector(
         private const val DEPENETRATION_SLOP = 0.1f
     }
 
-    fun updateDimensions(
+    override fun updateDimensions(
         leftBound: Float, rightBound: Float,
         topBound: Float, bottomBound: Float,
         cellWidth: Float, cellHeight: Float,
@@ -81,7 +81,7 @@ class CollisionDetector(
     }
 
     /** Get the screen-space rectangle for a brick at (row, col). Row 0 = bottom. */
-    fun getBrickRect(row: Int, col: Int): RectF {
+    override fun getBrickRect(row: Int, col: Int): RectF {
         val spacing = Constants.BRICK_SPACING
         val x = offsetX + col * cellWidth + spacing / 2
         val y = offsetY + (Constants.GRID_ROWS - 1 - row) * cellHeight + spacing / 2
@@ -146,7 +146,7 @@ class CollisionDetector(
      * that turbo (effective dt = 4×) runs as 4 sub-frames — this keeps multi-brick
      * collision resolution stable and prevents tunneling at high speed.
      */
-    fun advanceBall(ball: Ball, dt: Float, board: GameBoard): CcdResult {
+    override fun advanceBall(ball: Ball, dt: Float, board: GameBoard): CcdResult {
         val maxStep = Constants.MAX_PHYSICS_SUBSTEP_SECS
         var remaining = dt
         val allHits = mutableListOf<BrickHit>()

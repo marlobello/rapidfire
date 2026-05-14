@@ -13,6 +13,7 @@ import com.rapidfire.game.model.Brick
 import com.rapidfire.game.model.BrickShape
 import com.rapidfire.game.model.Cannon
 import com.rapidfire.game.physics.CollisionDetector
+import com.rapidfire.game.physics.PhysicsEngine
 import com.rapidfire.game.util.ColorPalette
 import com.rapidfire.game.util.Constants
 import kotlin.math.cos
@@ -172,7 +173,7 @@ class Renderer {
         }
     }
 
-    fun render(canvas: Canvas, state: GameState, collisionDetector: CollisionDetector,
+    fun render(canvas: Canvas, state: GameState, collisionDetector: PhysicsEngine,
                inputHandler: InputHandler, effects: VisualEffects? = null) {
         // Gradient background
         if (bgLinearGradient != null) {
@@ -304,7 +305,7 @@ class Renderer {
         canvas.drawLine(playAreaRight, playAreaTop, playAreaRight, cannonScreenY, boundaryPaint)
     }
 
-    private fun drawBrick(canvas: Canvas, brick: Brick, collisionDetector: CollisionDetector, shiftOffsetPx: Float) {
+    private fun drawBrick(canvas: Canvas, brick: Brick, collisionDetector: PhysicsEngine, shiftOffsetPx: Float) {
         val rect = collisionDetector.getBrickRect(brick.row, brick.col)
         // Shift bricks up during animation (they slide from old position to new)
         if (shiftOffsetPx > 0f) {

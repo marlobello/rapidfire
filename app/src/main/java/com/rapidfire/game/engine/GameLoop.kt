@@ -1,12 +1,12 @@
 package com.rapidfire.game.engine
 
 import com.rapidfire.game.audio.SoundManager
-import com.rapidfire.game.physics.CollisionDetector
+import com.rapidfire.game.physics.PhysicsEngine
 import com.rapidfire.game.util.Constants
 
 class GameLoop(
     private val state: GameState,
-    private val collisionDetector: CollisionDetector,
+    private val collisionDetector: PhysicsEngine,
     private val soundManager: SoundManager?,
     val effects: VisualEffects = VisualEffects()
 ) {

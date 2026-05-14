@@ -8,6 +8,8 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import com.rapidfire.game.audio.SoundManager
 import com.rapidfire.game.physics.CollisionDetector
+import com.rapidfire.game.physics.PhysicsEngine
+import com.rapidfire.game.physics.PhysicsEngineFactory
 import com.rapidfire.game.util.Constants
 
 class GameView @JvmOverloads constructor(
@@ -18,7 +20,7 @@ class GameView @JvmOverloads constructor(
     private var gameThread: GameThread? = null
     val gameState = GameState()
     private val renderer = Renderer()
-    private val collisionDetector = CollisionDetector()
+    private val collisionDetector: PhysicsEngine = PhysicsEngineFactory.create()
     private lateinit var inputHandler: InputHandler
     private var gameLoop: GameLoop? = null
     @Volatile var soundManager: SoundManager? = null
