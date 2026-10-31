@@ -1,6 +1,7 @@
 package com.rapidfire.game.engine
 
 import com.rapidfire.game.audio.SoundManager
+import com.rapidfire.game.model.Brick
 import com.rapidfire.game.physics.PhysicsEngine
 import com.rapidfire.game.util.Constants
 
@@ -66,18 +67,55 @@ class GameLoop(
 
             val result = collisionDetector.advanceBall(ball, effectiveDt, state.board)
 
-            // Process brick hits: scoring, sound, effects
+            // Apply direct hits before blasts so every collision in this frame counts.
             var playedSound = false
+            var destroyedCount = 0
+            var destroyedPoints = 0
+            val bombsToDetonate = ArrayDeque<Brick>()
             for (hit in result.hitBricks) {
                 if (hit.destroyed) {
-                    state.onBrickDestroyed(hit.points)
+                    destroyedCount++
+                    destroyedPoints += hit.points
                     if (!playedSound) { soundManager?.playExplode(); playedSound = true }
                     effects.spawnBrickParticles(hit.centerX, hit.centerY, hit.color)
                     effects.spawnScorePopup(hit.centerX, hit.centerY - 20f, hit.points)
+                    if (hit.brick.isBomb) bombsToDetonate.addLast(hit.brick)
                 } else {
                     if (!playedSound) { soundManager?.playBounce(); playedSound = true }
                 }
             }
+
+            val detonatedBombs = HashSet<Pair<Int, Int>>()
+            while (bombsToDetonate.isNotEmpty()) {
+                val bomb = bombsToDetonate.removeFirst()
+                if (!detonatedBombs.add(bomb.row to bomb.col)) continue
+
+                soundManager?.playBombExplosion()
+                val bombRect = collisionDetector.getBrickRect(bomb.row, bomb.col)
+                effects.spawnBombParticles(bombRect.centerX(), bombRect.centerY())
+
+                for (adjacent in state.board.detonateAdjacent(bomb.row, bomb.col)) {
+                    destroyedCount++
+                    destroyedPoints += adjacent.originalValue
+                    val adjacentRect = collisionDetector.getBrickRect(adjacent.row, adjacent.col)
+                    effects.spawnBrickParticles(
+                        adjacentRect.centerX(),
+                        adjacentRect.centerY(),
+                        adjacent.color
+                    )
+                    effects.spawnScorePopup(
+                        adjacentRect.centerX(),
+                        adjacentRect.centerY() - 20f,
+                        adjacent.originalValue
+                    )
+                    if (adjacent.isBomb) bombsToDetonate.addLast(adjacent)
+                }
+            }
+
+            if (destroyedCount > 0) {
+                state.onBricksDestroyed(destroyedCount, destroyedPoints)
+            }
+
             if (result.hadWallBounce && !playedSound) {
                 soundManager?.playBounce()
             }
@@ -86,5 +124,6 @@ class GameLoop(
                 state.onBallDespawn(ball)
             }
         }
+
     }
 }

@@ -39,6 +39,7 @@ class GameView @JvmOverloads constructor(
     init {
         holder.addCallback(this)
         isFocusable = true
+        isClickable = true
 
         inputHandler = InputHandler(gameState.cannon) {
             gameState.startFiring()
@@ -141,6 +142,7 @@ class GameView @JvmOverloads constructor(
             // Pause button (works even when paused)
             if (renderer.pauseButtonRect.contains(x, y)) {
                 post { onPauseRequested?.invoke() }
+                performClick()
                 return true
             }
 
@@ -154,21 +156,33 @@ class GameView @JvmOverloads constructor(
                 gameState.mulligans > 0 && ballsInPlay
             ) {
                 useMulligan()
+                performClick()
                 return true
             }
             if (renderer.recallButtonRect.contains(x, y) && ballsInPlay) {
                 recall()
+                performClick()
                 return true
             }
             if (renderer.turboButtonRect.contains(x, y) && ballsInPlay && !gameState.isTurbo) {
                 activateTurbo()
+                performClick()
                 return true
             }
         }
 
         if (isPaused) return false
         if (gameState.brickShiftOffset > 0f || gameState.isCannonSliding) return false
-        return inputHandler.handleTouch(event, gameState)
+        val handled = inputHandler.handleTouch(event, gameState)
+        if (event.action == MotionEvent.ACTION_UP && handled) {
+            performClick()
+        }
+        return handled
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
     }
 
     fun updateAndRender(canvas: Canvas) {

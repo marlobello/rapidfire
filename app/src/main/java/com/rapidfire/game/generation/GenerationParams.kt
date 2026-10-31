@@ -7,5 +7,6 @@ data class GenerationParams(
     val triangleTLProbability: Float = 0.10f,
     val triangleTRProbability: Float = 0.10f,
     val triangleBLProbability: Float = 0.10f,
-    val triangleBRProbability: Float = 0.10f
+    val triangleBRProbability: Float = 0.10f,
+    val bombProbability: Float = 0.03f
 )

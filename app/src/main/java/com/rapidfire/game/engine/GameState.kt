@@ -210,10 +210,9 @@ class GameState {
         }
     }
 
-    fun onBrickDestroyed(points: Int) {
+    fun onBricksDestroyed(count: Int, points: Int) {
         score += points
-        bricksDestroyed++
-        // Board clear: bonus points + earn a mulligan
+        bricksDestroyed += count
         if (board.getAllBricks().isEmpty()) {
             score += Constants.BOARD_CLEAR_BONUS
             boardClearTimer = Constants.BOARD_CLEAR_DISPLAY_SECS

@@ -134,9 +134,12 @@ class GameOverFragment : Fragment() {
         val inflater = LayoutInflater.from(requireContext())
         for ((index, entry) in scores.withIndex()) {
             val row = inflater.inflate(R.layout.item_game_over_score, container, false)
-            row.findViewById<TextView>(R.id.tvRank).text = "#${index + 1}"
-            row.findViewById<TextView>(R.id.tvScore).text = "%,d pts".format(entry.score)
-            row.findViewById<TextView>(R.id.tvDetails).text = "Rd ${entry.round}"
+            row.findViewById<TextView>(R.id.tvRank).text =
+                getString(R.string.leaderboard_rank, index + 1)
+            row.findViewById<TextView>(R.id.tvScore).text =
+                getString(R.string.leaderboard_score, entry.score)
+            row.findViewById<TextView>(R.id.tvDetails).text =
+                getString(R.string.leaderboard_round_short, entry.round)
 
             if (entry.id == highlightId) {
                 row.setBackgroundResource(R.drawable.bg_leaderboard_highlight)

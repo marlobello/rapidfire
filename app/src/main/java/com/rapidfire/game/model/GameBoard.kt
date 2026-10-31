@@ -21,6 +21,20 @@ class GameBoard {
         setBrick(row, col, null)
     }
 
+    /** Remove and return all live bricks in the eight cells around this position. */
+    fun detonateAdjacent(row: Int, col: Int): List<Brick> {
+        val destroyed = mutableListOf<Brick>()
+        for (adjacentRow in row - 1..row + 1) {
+            for (adjacentCol in col - 1..col + 1) {
+                if (adjacentRow == row && adjacentCol == col) continue
+                val brick = getBrick(adjacentRow, adjacentCol) ?: continue
+                removeBrick(adjacentRow, adjacentCol)
+                destroyed.add(brick)
+            }
+        }
+        return destroyed
+    }
+
     /** Shift all rows down by one. Returns true if game over (any brick pushed to row 0). */
     fun shiftDown(): Boolean {
         // Shift rows down: row 0 = row 1, row 1 = row 2, etc.

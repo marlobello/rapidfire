@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [ScoreEntity::class], version = 3, exportSchema = false)
+@Database(entities = [ScoreEntity::class], version = 3, exportSchema = true)
 abstract class ScoreDatabase : RoomDatabase() {
     abstract fun scoreDao(): ScoreDao
 

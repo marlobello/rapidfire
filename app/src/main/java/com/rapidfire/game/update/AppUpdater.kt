@@ -5,9 +5,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.Uri
-import android.os.Build
 import android.os.Environment
+import androidx.core.content.edit
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.rapidfire.game.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -69,7 +70,7 @@ class AppUpdater(private val context: Context) {
             connection.disconnect()
 
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .edit().putLong(KEY_LAST_CHECK, System.currentTimeMillis()).apply()
+                .edit { putLong(KEY_LAST_CHECK, System.currentTimeMillis()) }
 
             val release = JSONObject(json)
             val tagName = release.getString("tag_name")
@@ -109,7 +110,7 @@ class AppUpdater(private val context: Context) {
         onDownloadComplete: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        val request = DownloadManager.Request(Uri.parse(updateInfo.downloadUrl))
+        val request = DownloadManager.Request(updateInfo.downloadUrl.toUri())
             .setTitle("Rapid Fire v${updateInfo.versionName}")
             .setDescription("Tap to install when complete")
             .setMimeType("application/vnd.android.package-archive")
@@ -123,7 +124,7 @@ class AppUpdater(private val context: Context) {
 
         unregisterReceiver()
 
-        downloadReceiver = object : BroadcastReceiver() {
+        val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
                 val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
                 if (id != activeDownloadId) return
@@ -144,19 +145,14 @@ class AppUpdater(private val context: Context) {
                 cursor.close()
             }
         }
+        downloadReceiver = receiver
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(
-                downloadReceiver,
-                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-                Context.RECEIVER_EXPORTED
-            )
-        } else {
-            context.registerReceiver(
-                downloadReceiver,
-                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-            )
-        }
+        ContextCompat.registerReceiver(
+            context,
+            receiver,
+            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
 
         activeDownloadId = dm.enqueue(request)
         onDownloadStarted()

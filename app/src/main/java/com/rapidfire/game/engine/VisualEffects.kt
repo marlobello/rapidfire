@@ -58,6 +58,11 @@ class VisualEffects {
         }
     }
 
+    fun spawnBombParticles(cx: Float, cy: Float) {
+        spawnBrickParticles(cx, cy, android.graphics.Color.rgb(255, 87, 34), count = 28)
+        spawnBrickParticles(cx, cy, android.graphics.Color.rgb(255, 193, 7), count = 16)
+    }
+
     /** Spawn a floating score popup */
     fun spawnScorePopup(x: Float, y: Float, points: Int) {
         scorePopups.add(

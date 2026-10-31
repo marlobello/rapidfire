@@ -108,15 +108,38 @@ class LeaderboardFragment : Fragment() {
             val dateStr = SimpleDateFormat("MMM dd", Locale.getDefault())
                 .format(Date(entry.timestamp))
 
-            holder.tvRank.text = "#${position + 1}"
-            holder.tvScore.text = "%,d pts".format(entry.score)
+            holder.tvRank.text = holder.itemView.context.getString(
+                R.string.leaderboard_rank,
+                position + 1
+            )
+            holder.tvScore.text = holder.itemView.context.getString(
+                R.string.leaderboard_score,
+                entry.score
+            )
 
             val modeTag = when (entry.gameMode) {
-                "QUICK_START_50" -> " · QS50"
-                "QUICK_START_100" -> " · QS100"
+                "QUICK_START_50" -> holder.itemView.context.getString(R.string.quick_start_50_tag)
+                "QUICK_START_100" -> holder.itemView.context.getString(R.string.quick_start_100_tag)
                 else -> ""
             }
-            holder.tvDetails.text = "Round ${entry.round} · ${entry.bricksDestroyed} bricks · ${entry.boardClears} clears$modeTag"
+            val resources = holder.itemView.resources
+            val brickCount = resources.getQuantityString(
+                R.plurals.brick_count,
+                entry.bricksDestroyed,
+                entry.bricksDestroyed
+            )
+            val clearCount = resources.getQuantityString(
+                R.plurals.board_clear_count,
+                entry.boardClears,
+                entry.boardClears
+            )
+            holder.tvDetails.text = holder.itemView.context.getString(
+                R.string.leaderboard_details,
+                entry.round,
+                brickCount,
+                clearCount,
+                modeTag
+            )
             holder.tvDate.text = dateStr
         }
 

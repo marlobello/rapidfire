@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.rapidfire.game.R
 import com.rapidfire.game.audio.SoundManager
@@ -83,11 +84,11 @@ class GameFragment : Fragment() {
 
     fun togglePause() {
         val b = _binding ?: return
-        if (b.pauseOverlay.visibility == View.VISIBLE) {
-            b.pauseOverlay.visibility = View.GONE
+        if (b.pauseOverlay.isVisible) {
+            b.pauseOverlay.isVisible = false
             b.gameView.resumeGame()
         } else {
-            b.pauseOverlay.visibility = View.VISIBLE
+            b.pauseOverlay.isVisible = true
             b.gameView.pauseGame()
         }
     }
@@ -96,7 +97,7 @@ class GameFragment : Fragment() {
         super.onPause()
         val b = _binding ?: return
         b.gameView.pauseGame()
-        b.pauseOverlay.visibility = View.VISIBLE
+        b.pauseOverlay.isVisible = true
     }
 
     override fun onDestroyView() {

@@ -7,7 +7,8 @@ data class Brick(
     val col: Int,
     val shape: BrickShape,
     var value: Int,
-    val originalValue: Int = value
+    val originalValue: Int = value,
+    val isBomb: Boolean = false
 ) {
     val color: Int get() = ColorPalette.colorForValue(value)
     val isDestroyed: Boolean get() = value <= 0

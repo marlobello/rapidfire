@@ -2,13 +2,14 @@ package com.rapidfire.game.ui
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
+import androidx.core.net.toUri
 import androidx.navigation.fragment.findNavController
 import com.rapidfire.game.BuildConfig
 import com.rapidfire.game.R
@@ -39,16 +40,16 @@ class SettingsFragment : Fragment() {
 
         binding.switchSound.isChecked = prefs.getBoolean("sound_enabled", true)
         binding.switchSound.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean("sound_enabled", isChecked).apply()
+            prefs.edit { putBoolean("sound_enabled", isChecked) }
         }
 
         binding.tvAbout.text = getString(R.string.about_text, BuildConfig.VERSION_NAME)
 
         binding.tvGithub.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/marlobello/rapidfire")))
+            startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/marlobello/rapidfire".toUri()))
         }
         binding.tvLicense.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/marlobello/rapidfire/blob/main/LICENSE")))
+            startActivity(Intent(Intent.ACTION_VIEW, "https://github.com/marlobello/rapidfire/blob/main/LICENSE".toUri()))
         }
 
         binding.btnCheckUpdates.setOnClickListener {

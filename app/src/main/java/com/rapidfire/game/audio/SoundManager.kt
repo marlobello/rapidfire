@@ -3,6 +3,7 @@ package com.rapidfire.game.audio
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.SoundPool
+import com.rapidfire.game.R
 
 class SoundManager(context: Context) {
 
@@ -10,6 +11,7 @@ class SoundManager(context: Context) {
     private var soundFire: Int = 0
     private var soundBounce: Int = 0
     private var soundExplode: Int = 0
+    private var soundBomb: Int = 0
     private var soundGameOver: Int = 0
     var enabled: Boolean = true
 
@@ -24,23 +26,11 @@ class SoundManager(context: Context) {
             .setAudioAttributes(attrs)
             .build()
 
-        // Load sound resources — these will be added as raw resources later
-        // For now, we gracefully handle missing resources
-        try {
-            val res = context.resources
-            val pkg = context.packageName
-            val fireId = res.getIdentifier("snd_fire", "raw", pkg)
-            val bounceId = res.getIdentifier("snd_bounce", "raw", pkg)
-            val explodeId = res.getIdentifier("snd_explode", "raw", pkg)
-            val gameOverId = res.getIdentifier("snd_game_over", "raw", pkg)
-
-            if (fireId != 0) soundFire = soundPool.load(context, fireId, 1)
-            if (bounceId != 0) soundBounce = soundPool.load(context, bounceId, 1)
-            if (explodeId != 0) soundExplode = soundPool.load(context, explodeId, 1)
-            if (gameOverId != 0) soundGameOver = soundPool.load(context, gameOverId, 1)
-        } catch (_: Exception) {
-            // Sound files not yet added — silent mode
-        }
+        soundFire = soundPool.load(context, R.raw.snd_fire, 1)
+        soundBounce = soundPool.load(context, R.raw.snd_bounce, 1)
+        soundExplode = soundPool.load(context, R.raw.snd_explode, 1)
+        soundBomb = soundPool.load(context, R.raw.snd_bomb, 1)
+        soundGameOver = soundPool.load(context, R.raw.snd_game_over, 1)
     }
 
     fun playFire() {
@@ -53,6 +43,10 @@ class SoundManager(context: Context) {
 
     fun playExplode() {
         if (enabled && soundExplode != 0) soundPool.play(soundExplode, 0.7f, 0.7f, 1, 0, 1f)
+    }
+
+    fun playBombExplosion() {
+        if (enabled && soundBomb != 0) soundPool.play(soundBomb, 1f, 1f, 1, 0, 1f)
     }
 
     fun playGameOver() {

@@ -9,18 +9,25 @@ A brick-breaking cannon game for Android. Aim your cannon, fire bouncing balls, 
 - **Progressive difficulty** — each round adds a new row of bricks with increasing values
 - **Colorful visuals** — dark background with value-coded brick colors floating in space
 - **Leaderboard** — local high score tracking with Room database
-- **Sound effects** — fire, bounce, explode, and game over SFX
+- **Sound effects** — original fire, bounce, explode, and game-over sounds
 
 ## Building
 
-1. Open the project in **Android Studio Ladybug** or later
+1. Open the project in an Android Studio version compatible with **AGP 9.5**
 2. Let Gradle sync dependencies
-3. Run on a device/emulator with **API 31+** (Android 12)
+3. Use **JDK 17** for Gradle (the project configures this through Gradle daemon JVM criteria)
+4. Run on a device/emulator with **API 31+** (Android 12)
 
-Or from the command line:
+From PowerShell:
 
 ```bash
-./gradlew assembleDebug
+.\gradlew.bat assembleDebug
+```
+
+From macOS/Linux:
+
+```bash
+bash ./gradlew assembleDebug
 ```
 
 ## Architecture
@@ -29,7 +36,7 @@ Or from the command line:
 - **Navigation Component** — single-activity with fragments (menu, game, settings, leaderboard, game over)
 - **Room** — local high score persistence
 - **Material 3** — dark theme UI
-- **GitHub Actions** — CI/CD with signed release artifacts
+- **GitHub Actions** — pull-request builds, tests, lint, and signed tag releases
 
 ## Project Structure
 
@@ -47,7 +54,7 @@ com.rapidfire.game
 
 ## CI/CD
 
-GitHub Actions builds on every PR and creates signed releases on push to `main`. To set up signing, add these repository secrets:
+GitHub Actions builds, tests, and lints pull requests to `main`. Pushing a version tag (for example, `v1.3.1`) creates a signed release. To set up signing, add these repository secrets:
 
 - `KEYSTORE_BASE64` — base64-encoded release keystore
 - `KEYSTORE_PASSWORD` — keystore password
@@ -56,4 +63,4 @@ GitHub Actions builds on every PR and creates signed releases on push to `main`.
 
 ## License
 
-MIT
+[MIT](LICENSE)

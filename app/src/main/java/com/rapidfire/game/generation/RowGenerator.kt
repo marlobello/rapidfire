@@ -22,7 +22,8 @@ class RowGenerator(private val params: GenerationParams = GenerationParams()) {
                 row = Constants.GRID_ROWS - 2, // placed in Row 8 (index 7)
                 col = col,
                 shape = randomShape(),
-                value = brickValue
+                value = brickValue,
+                isBomb = Random.nextFloat() < params.bombProbability
             )
         }
     }

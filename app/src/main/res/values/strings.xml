@@ -11,8 +11,6 @@
     <string name="quit_confirm_yes">Quit</string>
     <string name="quit_confirm_no">Cancel</string>
     <string name="game_over">Game Over</string>
-    <string name="round_reached">Round %d</string>
-    <string name="save_score">Save Score</string>
     <string name="play_again">Play Again</string>
     <string name="main_menu">Main Menu</string>
     <string name="sound_enabled">Sound Effects</string>
@@ -28,10 +26,6 @@
     <string name="boss_rush_top_10">Boss Rush Top 10</string>
     <string name="leaderboard_standard">Standard</string>
     <string name="leaderboard_boss_rush">💀 Boss Rush</string>
-    <string name="score_entry">Round %1$d — %2$s</string>
-    <string name="mulligan">Mulligan</string>
-    <string name="recall">Recall</string>
-    <string name="turbo">Turbo</string>
     <string name="select_game_mode">Select Game Mode</string>
     <string name="mode_classic_label">🎯 Classic</string>
     <string name="mode_boss_rush_label">💀 Boss Rush — Start at Level 10, jump by 10</string>
@@ -39,10 +33,8 @@
     <string name="mode_quick_start_100_label">🔥 Quick Start — Level 100</string>
     <string name="check_for_updates">Check for Updates</string>
     <string name="checking_for_updates">Checking…</string>
-    <string name="update_available_title">Update Available</string>
     <string name="update_available_message">Version %1$s is available (you have %2$s).\n\n%3$s</string>
     <string name="update_now">Download &amp; Install</string>
-    <string name="later">Later</string>
     <string name="no_update_available">You\'re on the latest version. ✓</string>
     <string name="update_check_failed">Couldn\'t check for updates. Please try again.</string>
     <string name="download_started">Downloading update…</string>
@@ -52,4 +44,28 @@
     <string name="update_banner_text">v%s available!</string>
     <string name="tap_notification_to_install">Tap the download notification to install.</string>
     <string name="download_failed">Download failed. Tap Retry.</string>
+    <string name="paused">PAUSED</string>
+    <string name="new_high_score">🏆 NEW HIGH SCORE! 🏆</string>
+    <string name="score_label">SCORE</string>
+    <string name="round_label">ROUND</string>
+    <string name="bricks_label">Bricks</string>
+    <string name="clears_label">Clears</string>
+    <string name="shots_label">Shots</string>
+    <string name="mulligans_label">Mulligans</string>
+    <string name="rapid_title">Rapid</string>
+    <string name="fire_title"> Fire</string>
+    <string name="leaderboard_rank">#%1$d</string>
+    <string name="leaderboard_score">%1$,d pts</string>
+    <string name="leaderboard_round_short">Rd %1$d</string>
+    <string name="leaderboard_details">Round %1$d · %2$s · %3$s%4$s</string>
+    <string name="quick_start_50_tag"> · QS50</string>
+    <string name="quick_start_100_tag"> · QS100</string>
+    <plurals name="brick_count">
+        <item quantity="one">%d brick</item>
+        <item quantity="other">%d bricks</item>
+    </plurals>
+    <plurals name="board_clear_count">
+        <item quantity="one">%d clear</item>
+        <item quantity="other">%d clears</item>
+    </plurals>
 </resources>

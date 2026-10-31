@@ -8,6 +8,8 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
+import android.os.SystemClock
+import androidx.core.graphics.withClip
 import com.rapidfire.game.model.Ball
 import com.rapidfire.game.model.Brick
 import com.rapidfire.game.model.BrickShape
@@ -21,6 +23,15 @@ import kotlin.math.min
 import kotlin.math.sin
 
 class Renderer {
+    companion object {
+        private const val BOMB_PULSE_PERIOD_MS = 1800L
+
+        internal fun bombPulseAmount(timeMs: Long): Float {
+            val phase = (timeMs % BOMB_PULSE_PERIOD_MS).toDouble() / BOMB_PULSE_PERIOD_MS
+            return (sin(phase * Math.PI * 2) * 0.5 + 0.5).toFloat()
+        }
+    }
+
     private val brickPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val brickTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
@@ -190,13 +201,12 @@ class Renderer {
         drawBoundaryLines(canvas)
 
         // Draw bricks — clipped to play area so shift animation doesn't overflow
-        canvas.save()
-        canvas.clipRect(playAreaLeft, playAreaTop, playAreaRight, cannonScreenY)
-        val shiftPx = state.brickShiftOffset * cellHeight
-        for (brick in state.board.getAllBricks()) {
-            drawBrick(canvas, brick, collisionDetector, shiftPx)
+        canvas.withClip(playAreaLeft, playAreaTop, playAreaRight, cannonScreenY) {
+            val shiftPx = state.brickShiftOffset * cellHeight
+            for (brick in state.board.getAllBricks()) {
+                drawBrick(this, brick, collisionDetector, shiftPx)
+            }
         }
-        canvas.restore()
 
         // Draw aim line (if aiming)
         if (state.cannon.isAiming) {
@@ -311,7 +321,7 @@ class Renderer {
         if (shiftOffsetPx > 0f) {
             rect.offset(0f, -shiftOffsetPx)
         }
-        brickPaint.color = brick.color
+        brickPaint.color = if (brick.isBomb) pulsingBombColor(brick.color) else brick.color
 
         when (brick.shape) {
             BrickShape.SQUARE -> {
@@ -332,6 +342,27 @@ class Renderer {
         // For triangles, offset text toward the right-angle corner
         val (tx, ty) = getTextOffset(brick.shape, rect, textX, textY)
         canvas.drawText(brick.value.toString(), tx, ty, brickTextPaint)
+    }
+
+    private fun pulsingBombColor(baseColor: Int): Int {
+        val pulseTarget = if (isRedLike(baseColor)) Color.WHITE else Color.RED
+        val t = bombPulseAmount(SystemClock.uptimeMillis())
+        return blendColor(baseColor, pulseTarget, t)
+    }
+
+    private fun isRedLike(color: Int): Boolean {
+        val red = Color.red(color)
+        val green = Color.green(color)
+        val blue = Color.blue(color)
+        return red >= 200 && green <= 90 && blue <= 90
+    }
+
+    private fun blendColor(from: Int, to: Int, t: Float): Int {
+        val clamped = t.coerceIn(0f, 1f)
+        val r = (Color.red(from) + (Color.red(to) - Color.red(from)) * clamped).toInt()
+        val g = (Color.green(from) + (Color.green(to) - Color.green(from)) * clamped).toInt()
+        val b = (Color.blue(from) + (Color.blue(to) - Color.blue(from)) * clamped).toInt()
+        return Color.rgb(r, g, b)
     }
 
     private fun getTrianglePath(shape: BrickShape, rect: RectF): Path {
@@ -401,10 +432,9 @@ class Renderer {
             strokeWidth = Constants.BARREL_WIDTH
             strokeCap = Paint.Cap.ROUND
         }
-        canvas.save()
-        canvas.clipRect(0f, 0f, canvas.width.toFloat(), cy)
-        canvas.drawLine(cx, cy, barrelEndX, barrelEndY, barrelPaint)
-        canvas.restore()
+        canvas.withClip(0f, 0f, canvas.width.toFloat(), cy) {
+            drawLine(cx, cy, barrelEndX, barrelEndY, barrelPaint)
+        }
     }
 
     private fun drawAimLine(canvas: Canvas, cannon: Cannon) {
