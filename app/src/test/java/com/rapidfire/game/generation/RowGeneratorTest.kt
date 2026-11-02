@@ -7,8 +7,8 @@ import org.junit.Test
 class RowGeneratorTest {
 
     @Test
-    fun `default bomb spawn probability is three percent`() {
-        assertEquals(0.03f, GenerationParams().bombProbability, 0f)
+    fun `default bomb spawn probability is five percent`() {
+        assertEquals(0.05f, GenerationParams().bombProbability, 0f)
     }
 
     @Test
